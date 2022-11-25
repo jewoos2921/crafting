@@ -9,4 +9,9 @@ add_executable(crafting
         memory.c
         debug.c
         value.c
-        vm.c)
+        vm.c
+        compiler.c
+        scanner.c
+
+
+        )
