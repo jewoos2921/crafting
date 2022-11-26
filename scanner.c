@@ -23,8 +23,47 @@ void initScanner(const char *source) {
     scanner.line = 1;
 }
 
+static bool isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') ||
+           (c >= 'A' && c <= 'Z') || c == '_';
+}
+
+static bool isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
 static bool isAtEnd() {
     return *scanner.current == '\0';
+}
+
+static char advance() {
+    scanner.current++;
+    return scanner.current[-1];
+}
+
+static char peek() {
+    return *scanner.current;
+}
+
+static char peekNext() {
+    if (isAtEnd()) {
+        return '\0';
+    }
+
+    return scanner.current[1];
+}
+
+static bool match(char expected) {
+    if (isAtEnd()) {
+        return false;
+    }
+
+    if (*scanner.current != expected) {
+        return false;
+    }
+
+    scanner.current++;
+    return true;
 }
 
 static Token makeToken(TokenType type) {
@@ -43,23 +82,6 @@ static Token errorToken(const char *message) {
     token.length = (int) strlen(message);
     token.line = scanner.line;
     return token;
-}
-
-static char advance() {
-    scanner.current++;
-    return scanner.current[-1];
-}
-
-static char peek() {
-    return *scanner.current;
-}
-
-static char peekNext() {
-    if (isAtEnd()) {
-        return '\0';
-    }
-
-    return scanner.current[1];
 }
 
 static void skipWhiteSpace() {
@@ -92,64 +114,6 @@ static void skipWhiteSpace() {
                 return;
         }
     }
-}
-
-static Token string() {
-    while (peek() != '"' && !isAtEnd()) {
-        if (peek() == '\n') {
-            scanner.line++;
-        }
-        advance();
-    }
-
-    if (isAtEnd()) {
-        return errorToken("Unterminated string.");
-    }
-
-    // The closing quote.
-    advance();
-    return makeToken(TOKEN_STRING);
-}
-
-static bool match(char expected) {
-    if (isAtEnd()) {
-        return false;
-    }
-
-    if (*scanner.current != expected) {
-        return false;
-    }
-
-    scanner.current++;
-    return true;
-}
-
-static bool isDigit(char c) {
-    return c >= '0' && c <= '9';
-}
-
-static Token number() {
-    while (isDigit(peek())) {
-        advance();
-    }
-
-    // Look for a fractional part
-    if (peek() == '.' && isDigit(peekNext())) {
-
-        // consume the ".".
-        advance();
-
-        while (isDigit(peek())) {
-            advance();
-        }
-    }
-
-    return makeToken(TOKEN_NUMBER);
-}
-
-static bool isAlpha(char c) {
-    return (c >= 'a' && c <= 'z') ||
-           (c >= 'A' && c <= 'Z') || c == '_';
 }
 
 static TokenType checkKeyWord(int start, int length, const char *rest, TokenType type) {
@@ -224,6 +188,44 @@ static Token identifier() {
 
     return makeToken(identifierType());
 }
+
+static Token number() {
+    while (isDigit(peek())) {
+        advance();
+    }
+
+    // Look for a fractional part
+    if (peek() == '.' && isDigit(peekNext())) {
+
+        // consume the ".".
+        advance();
+
+        while (isDigit(peek())) {
+            advance();
+        }
+    }
+
+    return makeToken(TOKEN_NUMBER);
+}
+
+
+static Token string() {
+    while (peek() != '"' && !isAtEnd()) {
+        if (peek() == '\n') {
+            scanner.line++;
+        }
+        advance();
+    }
+
+    if (isAtEnd()) {
+        return errorToken("Unterminated string.");
+    }
+
+    // The closing quote.
+    advance();
+    return makeToken(TOKEN_STRING);
+}
+
 
 Token scanToken() {
 
