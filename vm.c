@@ -14,9 +14,6 @@
 #include "vm.h"
 
 
-VM vm;
-
-
 static void resetStack() {
     vm.stackTop = vm.stack;
 }
@@ -36,10 +33,11 @@ static void runtimeError(const char *format, ...) {
 
 void initVM() {
     resetStack();
+    vm.objects = NULL;
 }
 
 void freeVM() {
-
+    freeObjects();
 }
 
 void push(Value value) {
