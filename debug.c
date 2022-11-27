@@ -57,6 +57,14 @@ int disassembleInstruction(Chunk *chunk, int offset) {
         case OP_FALSE:
             return simpleInstruction("OP_FALSE", offset);
 
+        case OP_EQUAL:
+            return simpleInstruction("OP_EQUAL", offset);
+
+        case OP_GREATER:
+            return simpleInstruction("OP_GREATER", offset);
+
+        case OP_LESS:
+            return simpleInstruction("OP_LESS", offset);
 
         case OP_ADD:
             return simpleInstruction("OP_ADD", offset);
@@ -67,6 +75,10 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_MULTIPLY", offset);
         case OP_DIVIDE:
             return simpleInstruction("OP_DIVIDE", offset);
+
+        case OP_NOT:
+            return simpleInstruction("OP_NOT", offset);
+
         default:
             printf("Unknown opcode %d\n", instruction);
             return offset + 1;

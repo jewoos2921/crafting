@@ -33,12 +33,13 @@ typedef struct {
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
 
 
-
 typedef struct {
     int capacity;
     int count;
     Value *values;
 } ValueArray;
+
+bool valuesEqual(Value a, Value b);
 
 void initValueArray(ValueArray *array);
 
