@@ -14,4 +14,4 @@ add_executable(crafting
         scanner.c
 
 
-        )
+        object.c object.h)
