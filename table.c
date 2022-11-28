@@ -26,10 +26,24 @@ void freeTable(Table *table) {
 
 static Entry *findEntry(Entry *entries, int capacity,
                         ObjString *key) {
+
     uint32_t index = key->hash % capacity;
+    Entry *tombstone = NULL;
+
     for (;;) {
         Entry *entry = &entries[index];
-        if (entry->key == key || entry->key == NULL) {
+        if (entry->key == NULL) {
+            if (IS_NIL(entry->value)) {
+                // Empty entry.
+                return tombstone != NULL ? tombstone : entry;
+            } else {
+                // we found a tombstone.
+                if (tombstone == NULL) {
+                    tombstone = entry;
+                }
+            }
+        } else if (entry->key == key) {
+            // we found the key.
             return entry;
         }
 
@@ -44,6 +58,8 @@ static void adjustCapacity(Table *table, int capacity) {
         entries[i].value = NIL_VAL;
     }
 
+    table->count = 0;
+
     for (int i = 0; i < table->capacity; ++i) {
         Entry *entry = &table->entries[i];
         if (entry->key == NULL) {
@@ -53,6 +69,7 @@ static void adjustCapacity(Table *table, int capacity) {
         Entry *dest = findEntry(entries, capacity, entry->key);
         dest->key = entry->key;
         dest->value = entry->value;
+        table->count++;
     }
 
     FREE_ARRAY(Entry, table->entries, table->capacity);
@@ -70,9 +87,11 @@ bool tableSet(Table *table, ObjString *key, Value value) {
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = entry->key == NULL;
-    if (isNewKey) {
+
+    if (isNewKey && IS_NIL(entry->value)) {
         table->count++;
     }
+
 
     entry->key = key;
     entry->value = value;
@@ -99,5 +118,22 @@ bool tableGet(Table *table, ObjString *key, Value *value) {
     }
 
     *value = entry->value;
+    return true;
+}
+
+bool tableDelete(Table *table, ObjString *key) {
+    if (table->count == 0) {
+        return false;
+    }
+
+    // Find the entry.
+    Entry *entry = findEntry(table->entries, table->capacity, key);
+    if (entry->key == NULL) {
+        return false;
+    }
+
+    // Place a tombstone in the entry.
+    entry->key = NULL;
+    entry->value = BOOL_VAL(true);
     return true;
 }
