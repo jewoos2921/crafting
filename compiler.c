@@ -704,8 +704,7 @@ static void statement() {
     } else { expressionStatement(); }
 }
 
-
-bool compile(const char *source, Chunk *chunk) {
+ObjFunction *compile(const char *source) {
     initScanner(source);
     Compiler compiler;
 
@@ -718,6 +717,6 @@ bool compile(const char *source, Chunk *chunk) {
     while (!match(TOKEN_EOF)) {
         declaration();
     }
-    endCompiler();
-    return !parser.hadError;
+    ObjFunction *function = endCompiler();
+    return parser.hadError ? NULL : function;
 }
