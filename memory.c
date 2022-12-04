@@ -89,6 +89,11 @@ static void blackenObject(Obj *object) {
 #endif
 
     switch (object->type) {
+        case OBJ_CLASS: {
+            ObjClass *klass = (ObjClass *) object;
+            markObject((Obj *) klass->name);
+            break;
+        }
 
         case OBJ_CLOSURE: {
             ObjClosure *closure = (ObjClosure *) object;
@@ -113,6 +118,7 @@ static void blackenObject(Obj *object) {
         case OBJ_NATIVE:
         case OBJ_STRING:
             break;
+
     }
 }
 
@@ -123,6 +129,12 @@ static void freeObject(Obj *object) {
 #endif
 
     switch (object->type) {
+
+        case OBJ_CLASS: {
+            FREE(ObjClass, object);
+            break;
+        }
+
         case OBJ_STRING: {
             ObjString *string = (ObjString *) object;
             FREE_ARRAY(char, string->chars, string->length + 1);
@@ -137,9 +149,10 @@ static void freeObject(Obj *object) {
             break;
         }
 
-        case OBJ_NATIVE:
+        case OBJ_NATIVE: {
             FREE(ObjNative, object);
             break;
+        }
 
         case OBJ_CLOSURE: {
             ObjClosure *closure = (ObjClosure *) object;
@@ -148,9 +161,10 @@ static void freeObject(Obj *object) {
             break;
         }
 
-        case OBJ_UPVALUE:
+        case OBJ_UPVALUE: {
             FREE(ObjUpvalue, object);
             break;
+        }
 
     }
 

@@ -95,8 +95,6 @@ int disassembleInstruction(Chunk *chunk, int offset) {
         case OP_CLOSE_UPVALUE:
             return simpleInstruction("OP_CLOSE_UPVALUE", offset);
 
-        case OP_RETURN:
-            return simpleInstruction("OP_RETURN", offset);
 
         case OP_NEGATE:
             return simpleInstruction("OP_NEGATE", offset);
@@ -159,6 +157,12 @@ int disassembleInstruction(Chunk *chunk, int offset) {
 
         case OP_NOT:
             return simpleInstruction("OP_NOT", offset);
+
+        case OP_RETURN:
+            return simpleInstruction("OP_RETURN", offset);
+
+        case OP_CLASS:
+            return constantInstruction("OP_CLASS", chunk, offset);
 
         default:
             printf("Unknown opcode %d\n", instruction);
