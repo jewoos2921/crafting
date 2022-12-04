@@ -53,9 +53,8 @@ int disassembleInstruction(Chunk *chunk, int offset) {
     }
 
     uint8_t instruction = chunk->code[offset];
+
     switch (instruction) {
-
-
         case OP_PRINT:
             return simpleInstruction("OP_PRINT", offset);
 
@@ -133,6 +132,11 @@ int disassembleInstruction(Chunk *chunk, int offset) {
         case OP_SET_UPVALUE:
             return byteInstruction("OP_SET_UPVALUE",
                                    chunk, offset);
+        case OP_GET_PROPERTY:
+            return constantInstruction("OP_GET_PROPERTY", chunk, offset);
+
+        case OP_SET_PROPERTY:
+            return constantInstruction("OP_SET_PROPERTY", chunk, offset);
 
         case OP_EQUAL:
             return simpleInstruction("OP_EQUAL", offset);
