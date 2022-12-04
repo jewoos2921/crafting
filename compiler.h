@@ -10,4 +10,6 @@
 
 ObjFunction *compile(const char *source);
 
+void markCompilerRoots();
+
 #endif //CRAFTING_COMPILER_H

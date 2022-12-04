@@ -35,4 +35,6 @@ ObjString *tableFindString(Table *table,
                            const char *chars,
                            int length, uint32_t hash);
 
+void markTable(Table *table);
+
 #endif //CRAFTING_TABLE_H
