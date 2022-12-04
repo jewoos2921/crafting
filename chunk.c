@@ -34,6 +34,7 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line) {
                                   oldCapacity, chunk->capacity);
 
     }
+
     chunk->code[chunk->count] = byte;
     chunk->lines[chunk->count] = line;
     chunk->count++;

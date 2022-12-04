@@ -92,6 +92,9 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return offset;
         }
 
+        case OP_CLOSE_UPVALUE:
+            return simpleInstruction("OP_CLOSE_UPVALUE", offset);
+
         case OP_RETURN:
             return simpleInstruction("OP_RETURN", offset);
 
@@ -131,7 +134,7 @@ int disassembleInstruction(Chunk *chunk, int offset) {
                                    chunk, offset);
         case OP_SET_UPVALUE:
             return byteInstruction("OP_SET_UPVALUE",
-                                       chunk, offset);
+                                   chunk, offset);
 
         case OP_EQUAL:
             return simpleInstruction("OP_EQUAL", offset);
