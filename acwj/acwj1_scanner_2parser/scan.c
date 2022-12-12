@@ -8,14 +8,15 @@
 
 // Lexical Scanning
 
-//
+// Return the position of character c
+// in string s, or -1 if c not found
 static int chrpos(string s, int c) {
     char *p = strchr(s, c);
 
     return (int) (p ? p - s : -1);
 }
 
-//
+// Get the next character from the input file.
 static int next(void) {
     int c;
 
