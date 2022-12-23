@@ -10,4 +10,6 @@
 #include <stdint.h>
 
 
+#define DEBUG_TRACE_EXECUTION
+
 #endif //CRAFTING_COMMON_H

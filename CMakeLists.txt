@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.23)
 project(crafting C)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 23)
+#set(CMAKE_C_STANDARD 99)
 
 #add_executable(crafting
 #        main.c
@@ -26,4 +27,16 @@ add_executable(
         "cray/chunks of bytecode/memory.c"
         "cray/chunks of bytecode/chunk.c"
         "cray/chunks of bytecode/main.c"
-        "cray/chunks of bytecode/debug.c" "cray/chunks of bytecode/value.c" "cray/chunks of bytecode/value.h")
+        "cray/chunks of bytecode/debug.c"
+        "cray/chunks of bytecode/value.c"
+
+        "cray/chunks of bytecode/vm.c"
+)
+
+add_executable(
+        small
+        small/codegen.c
+        small/table.c
+        small/getSource.c
+
+        small/main.c small/compile.c)
