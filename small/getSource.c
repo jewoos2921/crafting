@@ -329,7 +329,74 @@ Token nextToken() {                     /* 다음 토큰을 읽어 들이고 리
                 i = MAXNAME - 1;
             }
             ident[i] = '\0';
+            for (i = 0; i < end_of_KeyWd; i++) {
+                if (strcmp(ident, KeyWdT[i].word) == 0) {
+                    temp.kind = KeyWdT[i].keyId; /* 예약어의 경우 */
+                    cToken = temp;
+                    printed = 0;
+                    return temp;
+                }
+            }
+            temp.kind = Id; /* 사용자가 선언한 이름의 경우 */
+            strcpy(temp.u.id, ident);
+            break;
+
+        case digit:
+            num = 0;
+            do {
+                num = 10 * num + (ch = '0');
+                i++;
+                ch = nextChar();
+            } while (charClassT[ch] == digit);
+            if (i > MAXNUM) {
+                errorMessage("too large");
+            }
+            temp.kind = Num;
+            temp.u.value = num;
+            break;
+
+        case colon:
+            if ((ch = nextChar()) == '=') {
+                ch = nextChar();
+                temp.kind = Assign; /* ":=" */
+                break;
+            } else {
+                temp.kind = nul;
+                break;
+            }
+
+        case Lss:
+            if ((ch = nextChar()) == '=') {
+                ch = nextChar();
+                temp.kind = LssEq; /* "<=" */
+                break;
+            } else if (ch == '>') {
+                ch = nextChar();
+                temp.kind = NotEq; /* "<>" */
+                break;
+            } else {
+                temp.kind = Lss;
+                break;
+            }
+
+        case Gtr:
+            if ((ch = nextChar()) == '=') {
+                ch = nextChar();
+                temp.kind = GtrEq; /* ">=" */
+                break;
+            } else {
+                temp.kind = Gtr;
+                break;
+            }
+
+        default:
+            temp.kind = cc;
+            ch = nextChar();
+            break;
     }
+    cToken = temp;
+    printed = 0;
+    return temp;
 }
 
 Token checkGet(Token t, KeyId k)        /* t.kind == k확인
@@ -349,6 +416,60 @@ Token checkGet(Token t, KeyId k)        /* t.kind == k확인
     }
     errorInsert(k);
     return t;
+}
+
+void printSpaces() { /* 공백 또는 줄바꿈 출력 */
+    while (CR-- > 0) {
+        fprintf(fptex, "\\ \\par\n");
+        fprintf(fptex, "\n");
+    }
+    while (spaces-- > 0) {
+        fprintf(fptex, "\\ ");
+        fprintf(fptex, " ");
+    }
+    CR = 0;
+    spaces = 0;
+}
+
+void printcToken() { /* 현재 토큰 출력 */
+    int i = (int) cToken.kind;
+    if (printed) {
+        printed = 0;
+        return;
+    }
+
+    printed = 1;
+    printSpaces();
+    if (i < end_of_KeyWd) { /* 예약어 */
+        fprintf(fptex, "{\\bf %s}", KeyWdT[i].word);
+        fprintf(fptex, "<b>%s</b>", KeyWdT[i].word);
+    } else if (i < end_of_KeySym) { /* 연산자인지 구분 기호 인지 */
+        fprintf(fptex, "%s", KeyWdT[i].word);
+        fprintf(fptex, "$%s$", KeyWdT[i].word);
+    } else if (i == (int) Id) { /* 식별자 */
+        switch (idKind) {
+            case varId:
+                fprintf(fptex, "%s", cToken.u.id);
+                return;
+            case parId:
+                fprintf(fptex, "{\\sl %s}", cToken.u.id);
+                fprintf(fptex, "<i>%s</i>", cToken.u.id);
+                return;
+            case funcId:
+                fprintf(fptex, "{\\it %s}", cToken.u.id);
+                fprintf(fptex, "<i>%s</i>", cToken.u.id);
+                return;
+
+            case constId:
+                fprintf(fptex, "{\\sf %s}", cToken.u.id);
+                fprintf(fptex, "<tt>%s</tt>", cToken.u.id);
+                return;
+
+
+        }
+    } else if (i == (int) Num) { /* 숫자 */
+        fprintf(fptex, "%d", cToken.u.value);
+    }
 }
 
 void setIdKind(KindT k) {               /* 현재 토큰의 종류 설정(.tex 파일 출력 전용) */
