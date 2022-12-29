@@ -292,15 +292,52 @@ char nextChar() {
     return ch;
 }
 
-Token nextToken() { /* 다음 토큰을 읽어 들이고 리턴 */
+Token nextToken() {                     /* 다음 토큰을 읽어 들이고 리턴 */
+    int i = 0;
+    int num;
+
+    KeyId cc;
+    Token temp;
+    char ident[MAXNAME];
+    printcToken(); /* 앞의 토큰 출력 */
+    spaces = 0;
+    CR = 0;
+    /* 다음 토큰 까지 공백과 줄바꿈을 셈 */
+    while (1) {
+        if (ch == ' ')
+            spaces++;
+        else if (ch == '\t')
+            spaces += TAB;
+        else if (ch == '\n') {
+            spaces = 0;
+            CR++;
+        } else break;
+        ch = nextChar();
+    }
+
+    switch (cc = charClassT[ch]) {
+        case letter:
+            do {
+                if (i < MAXNAME)
+                    ident[i] = ch;
+                i++;
+                ch = nextChar();
+            } while (charClassT[ch] == letter || charClassT[ch] == digit);
+
+            if (i >= MAXNAME) {
+                errorMessage("too long");
+                i = MAXNAME - 1;
+            }
+            ident[i] = '\0';
+    }
 }
 
-Token checkGet(Token t, KeyId k) /* t.kind == k확인
- * t.kind == k라면 다음 토큰을 읽어 들이고 리턴
- * t.kind != k라면 오류 메시지를 출력, t와 k가 같은 기호 또는 예약어라면 t를 버리고
- * 다음 토큰을 읽어 들이고 리턴 (t를 k로 변경하게 됨)
- * 이 이외의 경우, k를 삽입한 상태에서 t를 리턴
- */
+Token checkGet(Token t, KeyId k)        /* t.kind == k확인
+                                         * t.kind == k라면 다음 토큰을 읽어 들이고 리턴
+                                         * t.kind != k라면 오류 메시지를 출력, t와 k가 같은 기호 또는 예약어라면 t를 버리고
+                                         * 다음 토큰을 읽어 들이고 리턴 (t를 k로 변경하게 됨)
+                                         * 이 이외의 경우, k를 삽입한 상태에서 t를 리턴
+                                         */
 {
     if (t.kind == k) {
         return nextToken();
@@ -314,6 +351,6 @@ Token checkGet(Token t, KeyId k) /* t.kind == k확인
     return t;
 }
 
-void setIdKind(KindT k) { /* 현재 토큰의 종류 설정(.tex 파일 출력 전용) */
+void setIdKind(KindT k) {               /* 현재 토큰의 종류 설정(.tex 파일 출력 전용) */
     idKind = k;
 }

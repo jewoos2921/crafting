@@ -74,3 +74,5 @@ void errorF(char *m);                   /* 오류 메시지를 출력하고 컴�
 int errorN();                           /* 오류 개수 리턴 */
 
 void setIdKind(KindT k);                /* 현재 토큰의 종류 설정(.tex 파일 출력 전용) */
+
+int compile();
