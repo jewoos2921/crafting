@@ -58,15 +58,15 @@ void blockBegin(int firstAddr) {                            /* 블록시작(첫 
     if (level == MAXLEVEL - 1) {
         errorF("too many nested blocks");
     }
-    indexes[level] = tIndex;
+    indexes[level] = tIndex; /* 지금까지 블록 정보 저장 */
     addr[level] = localAddr;
-    localAddr = firstAddr;
-    level++;
+    localAddr = firstAddr; /* 새로운 블록이 첫 변수의 위치 */
+    level++; /* 새로운 블록 레벨 */
 }
 
 void blockEnd() {                                           /* 블록 종료 때 호출 */
     level--;
-    tIndex = indexes[level];
+    tIndex = indexes[level];                                /* 바로 밖 블록의 정보 복구 */
     localAddr = addr[level];
 }
 
@@ -90,19 +90,65 @@ int enterTfunc(char *id, int v) {                            /* 이름 테이블
     enterT(id);
     nameTable[tIndex].kind = funcId;
     nameTable[tIndex].u.f.raddr.level = level;
-    nameTable[tIndex].u.f.raddr.addr = v;
-    nameTable[tIndex].u.f.pars = 0;
+    nameTable[tIndex].u.f.raddr.addr = v;               /* 함수 맨 앞부분의 주소 */
+    nameTable[tIndex].u.f.pars = 0;                     /* 매개변수 수의 초깃값 */
     tfIndex = tIndex;
     return tIndex;
 }
 
-void endpar(); /* 매개변수 선언부의 마지막에서 호출됨 */
+int enterTvar(char *id) {                                    /* 이름 테이블에 변수 이름 등록 */
+    enterT(id);
+    nameTable[tIndex].kind = parId;
+    nameTable[tIndex].u.raddr.level = level;
+    nameTable[tfIndex].u.f.pars++; /* 함수 매개변수 수 세기 */
+    return tIndex;
+}
 
-void changeV(int ti, int newVal); /* 이름_테이블 [ti]의 값(함수 맨 앞부분의 주소)을 변경 */
+int enterTpar(char *id) {                                    /* 이름 테이블에 매개변수 이름 등록 */
+    enterT(id);
+    nameTable[tIndex].kind = varId;
+    nameTable[tIndex].u.raddr.level = level;
+    nameTable[tIndex].u.raddr.addr = localAddr++;
+    return tIndex;
+}
+
+int enterTconst(char *id, int v) {                           /* 이름 테이블에 상수 이름과 값 등록 */
+    enterT(id);
+    nameTable[tIndex].kind = constId;
+    nameTable[tIndex].u.value = v;
+    return tIndex;
+}
+
+void endpar() {                  /* 매개변수 선언부의 마지막에서 호출됨 */
+    int i;
+    int pars = nameTable[tfIndex].u.f.pars;
+    if (pars == 0) { return; }
+    for (i = 1; i <= pars; i++) {
+        /* 각 매개변수의 주소 구하기 */
+        nameTable[tfIndex].u.raddr.addr = i - 1 - pars;
+    }
+}
+
+void changeV(int ti, int newVal) { /* 이름_테이블 [ti]의 값(함수 맨 앞부분의 주소)을 변경 */
+    nameTable[ti].u.f.raddr.addr = newVal;
+}
 
 int searchT(char *id, KindT k) { /* 이름 id의 이름 테이블 위치 리턴, 없는 경우 오류 발생 */
     int i;
     i = tIndex;
+    strcpy(nameTable[0].name, id); /* 센티널 생성 */
+    while (strcmp(id, nameTable[i].name) != 0) {
+        i--;
+    }
+    if (i) { /* 이름이 있을 때 */
+        return i;
+    } else { /* 이름이 없을 때 */
+        errorType("undef");
+        if (k == varId) {
+            return enterTvar(id); /* 변수라면 일단 등록 */
+        }
+        return 0;
+    }
 }
 
 KindT kindT(int i) {  /* 이름_테이블 [ti]의 종류 리턴 */
