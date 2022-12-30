@@ -45,4 +45,4 @@ add_executable(
         64OS
         64OS/Kernel32/Source/Main.c
 #        64OS/ImageMaker.
-        64OS/Kernel32/Source/Page.c)
+        64OS/Kernel32/Source/Page.c 64OS/Kernel32/Source/Keyboard.c)
