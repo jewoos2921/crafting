@@ -44,4 +44,4 @@ add_executable(
 add_executable(
         64OS
         64OS/Main.c
-)
+        64OS/ImageMaker.c)
