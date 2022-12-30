@@ -76,6 +76,9 @@ int main() {
     // 원래는 아래 함수를 호출해야 하나 IA-32e 모드 커널이 없으므로 주석 처리
 //    kSwitchAndExecute64bitKernel();
 
+    kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
+    kPrintString(0, 11, "IA-32e C Language Kernel Start.....................[Pass]");
+
     while (1);
 }
 
