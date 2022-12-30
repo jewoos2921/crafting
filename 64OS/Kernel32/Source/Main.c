@@ -4,6 +4,7 @@
 // C 코드 엔트리 포인트 파일
 #include "Types.h"
 #include "Page.h"
+
 // 보호 모드 커널의 C언어 엔트리 포인트
 #include "ModeSwitch.h"
 
@@ -13,6 +14,7 @@ BOOL kInitializeKernel64Area(void);
 
 BOOL kIsMemoryEnough(void);
 
+void kCopyKernel64ImageTo2Mbyte(void);
 
 int main() {
     DWORD i;
@@ -71,13 +73,15 @@ int main() {
         while (1);
     }
 
-    // IA-32e 모드로 전환
-    kPrintString(0, 9, "Switch to IA-32e Mode");
-    // 원래는 아래 함수를 호출해야 하나 IA-32e 모드 커널이 없으므로 주석 처리
-//    kSwitchAndExecute64bitKernel();
+    // IA-32e 모드 커널을 0x200000(2MBbyte) 어드레스로 이동
+    kPrintString(0, 9, "Copy IA-32e Kernel to 2M Address...........[    ]");
+    kCopyKernel64ImageTo2Mbyte();
+    kPrintString(45, 9, "Pass");
 
+
+    // IA-32e 모드로 전환
     kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
-    kPrintString(0, 11, "IA-32e C Language Kernel Start.....................[Pass]");
+    kSwitchAndExecute64bitKernel();
 
     while (1);
 }
@@ -141,4 +145,25 @@ BOOL kIsMemoryEnough(void) {
     }
 
     return TRUE;
+}
+
+// IA-32e 모드 커널을 0x200000(2Mbyte) 어드레스에 복사
+void kCopyKernel64ImageTo2Mbyte(void) {
+    WORD wKernel32SectorCount, wTotalKernelSectorCount;
+    DWORD *pdwSourceAddress;
+    DWORD *pdwDestinationAddress;
+
+    // 0x7C05에 총 커널 섹터 수, 0x7C07에 보호 모드 커널 수가 들어 있음
+    wTotalKernelSectorCount = *((WORD *) 0x7C05);
+    wKernel32SectorCount = *((WORD *) 0x7C07);
+
+    pdwSourceAddress = (DWORD *) (0x10000 + (wKernel32SectorCount * 512));
+    pdwDestinationAddress = (DWORD *) 0x200000;
+
+    // IA-32E 모드 커널 섹터 크기만큼 복사
+    for (int i = 0; i < 512 * (wTotalKernelSectorCount - wKernel32SectorCount) / 4; ++i) {
+        *pdwDestinationAddress = *pdwSourceAddress;
+        pdwDestinationAddress++;
+        pdwSourceAddress++;
+    }
 }
