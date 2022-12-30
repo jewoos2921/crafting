@@ -43,5 +43,6 @@ add_executable(
 
 add_executable(
         64OS
-        64OS/Main.c
-        64OS/ImageMaker.c)
+        64OS/Kernel32/Source/Main.c
+#        64OS/ImageMaker.
+        64OS/Kernel32/Source/Page.c)
