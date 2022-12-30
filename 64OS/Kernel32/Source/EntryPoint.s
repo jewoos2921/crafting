@@ -1,5 +1,0 @@
-[ORG 0x00]
-[BITS 16]
-
-SECTION .text
-
