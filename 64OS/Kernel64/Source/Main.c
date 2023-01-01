@@ -4,11 +4,13 @@
 // C 코드 엔트리 포인트 파일
 #include "Types.h"
 #include "Keyboard.h"
+#include "Descriptor.h"
+
 #include "Page.h"
 
 // 보호 모드 커널의 C언어 엔트리 포인트
 #include "ModeSwitch.h"
-
+#include "AssemblyUtility.h"
 
 void kPrintString(int iX, int iY, const char *pcString);
 
@@ -18,86 +20,41 @@ BOOL kIsMemoryEnough(void);
 
 void kCopyKernel64ImageTo2Mbyte(void);
 
+
 int main() {
-
-    DWORD i;
-    DWORD dwEAX, dwEBX, dwECX, dwEDX;
-
-    char vcVendorString[13] = {0,};
-
-    kPrintString(0, 3, "C Language Kernel Started~!!!");
-
-
-    // 최소 메모리 크기를 만족하는 지 검사
-    kPrintString(0, 4, "Minimum Memory Size Check....................[      ]");
-    if (kIsMemoryEnough() == FALSE) {
-        kPrintString(45, 4, "Fail");
-        kPrintString(0, 5, "Not Enough Memory~!! "
-                           "MINTI64 OS Requires Over 64MB Memory~!!");
-
-        while (1);
-    } else {
-        kPrintString(45, 4, "Pass");
-    }
-
-
-    // IA-32e 모드의 커널 영역을 초기화
-    kPrintString(0, 5, "IA-32e Kernel Area Intialize.............[   ]");
-    if (kInitializeKernel64Area() == FALSE) {
-        kPrintString(45, 5, "Fail");
-        kPrintString(0, 6, "Kernel Area Initialization Fail~!!");
-        while (1);
-    }
-    kPrintString(45, 5, "Pass");
-
-    // IA-32e 모드 커널을 위한 페이지 테이블 생성
-    kPrintString(0, 6, "IA-32e Page Tables Intialize..........[    ]");
-    kInitializePageTables();
-    kPrintString(45, 6, "Pass");
-
-    // 프로세스 제조사 정보 읽기
-    kReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
-    *(DWORD *) vcVendorString = dwEBX;
-    *((DWORD *) vcVendorString + 1) = dwEDX;
-    *((DWORD *) vcVendorString + 2) = dwECX;
-
-    kPrintString(0, 7, "Processor vendor string ......... [          ]");
-    kPrintString(45, 7, vcVendorString);
-
-    // 64 비트 지원 유무 확인
-    kReadCPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
-    kPrintString(0, 8, "64bit Mode Support Check .............[         ]");
-
-    if (dwEDX & (1 << 29)) {
-        kPrintString(45, 8, "Pass");
-    } else {
-        kPrintString(45, 8, "Fail");
-        kPrintString(0, 9, "This processor does not support 64bit model~!!");
-        while (1);
-    }
-
-    // IA-32e 모드 커널을 0x200000(2MBbyte) 어드레스로 이동
-    kPrintString(0, 9, "Copy IA-32e Kernel to 2M Address...........[    ]");
-    kCopyKernel64ImageTo2Mbyte();
-    kPrintString(45, 9, "Pass");
-
 
     char vcTemp[2] = {0,};
     BYTE bFlags;
     BYTE bTemp;
+    DWORD i;
 
     // IA-32e 모드로 전환
     kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
     kPrintString(0, 11, "IA-32e C Language Kernel Start.............[Pass]");
-    kPrintString(0, 12, "Keyboard Activate .............[    ]");
+    kPrintString(0, 12, "GDT Initialize And Switch For IA-32e Mode...[   ]");
+    kInitializeGDTTableAndTSS();
+    kLoadGDTR(GDTR_STARADDRESS);
+    kPrintString(45, 12, "Pass");
+
+    kPrintString(0, 13, "TSS Segment Load........................[    ]");
+    kLoadTR(GDT_TSSSEGMENT);
+    kPrintString(45, 13, "Pass");
+
+
+    kPrintString(0, 14, "IDT Initialize..........................[      ]");
+    kInitializeIDTTables();
+    kLoadGDTR(IDTR_STARTADDRESS);
+    kPrintString(45, 14, "Pass");
+
+    kPrintString(0, 15, "Keyboard Activate.......................[      ]");
 
 
     // 키보드를 활성화
     if (kActiveateKeyboard() == TRUE) {
-        kPrintString(45, 12, "Pass");
+        kPrintString(45, 15, "Pass");
         kChangeKeyboardLED(FALSE, FALSE, FALSE);
     } else {
-        kPrintString(45, 12, "Fail");
+        kPrintString(45, 15, "Fail");
         while (1);
     }
 
@@ -109,10 +66,17 @@ int main() {
 
             // 스캔 코드를 ASCII 코드로 변환하는 함수를 호출하여 ASCII 코드와
             // 눌림 또는 떨어짐 정보를 반환
-            if (kConvertScanCodeToASCIICode(bTemp, &(vcTemp[0]), &bFlags) == TRUE) {
+            if (kConvertScanCodeToASCIICode(bTemp,
+                                            &(vcTemp[0]), &bFlags) == TRUE) {
                 // 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력
                 if (bFlags & KEY_FLAGS_DOWN) {
-                    kPrintString(i++, 13, vcTemp);
+                    kPrintString(i++, 16, vcTemp);
+                    // 0이 입력되면 변수를 0으로 나누어 Divide Error 예외(벡터 0번)를 발생시킴
+                    if (vcTemp[0] == '0') {
+                        // 아래 코드를 수행하면 Divide Error 예외가 발생하여
+                        // 커널의 임시 핸들러가 수행됨
+                        bTemp = bTemp / 0;
+                    }
                 }
             }
         }
@@ -123,6 +87,115 @@ int main() {
 //
 //    while (1);
 }
+
+
+
+//
+//int main() {
+//
+//    DWORD i;
+//    DWORD dwEAX, dwEBX, dwECX, dwEDX;
+//
+//    char vcVendorString[13] = {0,};
+//
+//    kPrintString(0, 3, "C Language Kernel Started~!!!");
+//
+//
+//    // 최소 메모리 크기를 만족하는 지 검사
+//    kPrintString(0, 4, "Minimum Memory Size Check....................[      ]");
+//    if (kIsMemoryEnough() == FALSE) {
+//        kPrintString(45, 4, "Fail");
+//        kPrintString(0, 5, "Not Enough Memory~!! "
+//                           "MINTI64 OS Requires Over 64MB Memory~!!");
+//
+//        while (1);
+//    } else {
+//        kPrintString(45, 4, "Pass");
+//    }
+//
+//
+//    // IA-32e 모드의 커널 영역을 초기화
+//    kPrintString(0, 5, "IA-32e Kernel Area Intialize.............[   ]");
+//    if (kInitializeKernel64Area() == FALSE) {
+//        kPrintString(45, 5, "Fail");
+//        kPrintString(0, 6, "Kernel Area Initialization Fail~!!");
+//        while (1);
+//    }
+//    kPrintString(45, 5, "Pass");
+//
+//    // IA-32e 모드 커널을 위한 페이지 테이블 생성
+//    kPrintString(0, 6, "IA-32e Page Tables Intialize..........[    ]");
+//    kInitializePageTables();
+//    kPrintString(45, 6, "Pass");
+//
+//    // 프로세스 제조사 정보 읽기
+//    kReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+//    *(DWORD *) vcVendorString = dwEBX;
+//    *((DWORD *) vcVendorString + 1) = dwEDX;
+//    *((DWORD *) vcVendorString + 2) = dwECX;
+//
+//    kPrintString(0, 7, "Processor vendor string ......... [          ]");
+//    kPrintString(45, 7, vcVendorString);
+//
+//    // 64 비트 지원 유무 확인
+//    kReadCPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+//    kPrintString(0, 8, "64bit Mode Support Check .............[         ]");
+//
+//    if (dwEDX & (1 << 29)) {
+//        kPrintString(45, 8, "Pass");
+//    } else {
+//        kPrintString(45, 8, "Fail");
+//        kPrintString(0, 9, "This processor does not support 64bit model~!!");
+//        while (1);
+//    }
+//
+//    // IA-32e 모드 커널을 0x200000(2MBbyte) 어드레스로 이동
+//    kPrintString(0, 9, "Copy IA-32e Kernel to 2M Address...........[    ]");
+//    kCopyKernel64ImageTo2Mbyte();
+//    kPrintString(45, 9, "Pass");
+//
+//
+//    char vcTemp[2] = {0,};
+//    BYTE bFlags;
+//    BYTE bTemp;
+//
+//    // IA-32e 모드로 전환
+//    kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
+//    kPrintString(0, 11, "IA-32e C Language Kernel Start.............[Pass]");
+//    kPrintString(0, 12, "Keyboard Activate .............[    ]");
+//
+//
+//    // 키보드를 활성화
+//    if (kActiveateKeyboard() == TRUE) {
+//        kPrintString(45, 12, "Pass");
+//        kChangeKeyboardLED(FALSE, FALSE, FALSE);
+//    } else {
+//        kPrintString(45, 12, "Fail");
+//        while (1);
+//    }
+//
+//    while (1) {
+//        // 출력 버퍼(포트 0x60)가 차 있으면 스캔 코드를 읽을 수 있음
+//        if (kIsOutputBufferFull() == TRUE) {
+//            // 출력 버퍼(포트 0x60)에서 스캔 코드를 읽어서 저장
+//            bTemp = kGetKeyboardScanCode();
+//
+//            // 스캔 코드를 ASCII 코드로 변환하는 함수를 호출하여 ASCII 코드와
+//            // 눌림 또는 떨어짐 정보를 반환
+//            if (kConvertScanCodeToASCIICode(bTemp, &(vcTemp[0]), &bFlags) == TRUE) {
+//                // 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력
+//                if (bFlags & KEY_FLAGS_DOWN) {
+//                    kPrintString(i++, 13, vcTemp);
+//                }
+//            }
+//        }
+//    }
+//
+//
+////    kSwitchAndExecute64bitKernel();
+////
+////    while (1);
+//}
 
 // 문자열 출력 함수
 // 문자열을 X, Y 위치에 출력
