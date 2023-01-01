@@ -105,13 +105,13 @@ BOOL kIsAlphabetScanCode(BYTE bScanCode);
 
 BOOL kIsNumberOrSymbolScanCode(BYTE bScanCode);
 
-BOOL ksNumberPadScanCode(BYTE bSCanCode);
+BOOL kIsNumberPadScanCode(BYTE bSCanCode);
 
 BOOL kIsUSeCombinedCode(BOOL bScanCode);
 
-void updateCombinationKeyStatusAndLED(BYTE bScanCode);
+void UpdateCombinationKeyStatusAndLED(BYTE bScanCode);
 
-BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *bpFlags);
+BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlags);
 
 
 #endif //CRAFTING_KEYBOARD_H

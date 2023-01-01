@@ -22,7 +22,7 @@ kInPortByte:
 
 
 
-; 포트로부터 1바이트를 읽음
+; 포트로부터 1바이트를 씀
 ; PARM: 포트번호, 데이터
 kOutPortByte:
     push rdx ; 함수에서 임시로 사용하는 레지스터를 스택에 저장
