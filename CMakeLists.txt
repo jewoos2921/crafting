@@ -50,5 +50,5 @@ add_executable(
         64OS/Kernel64/Source/Keyboard.c
         64OS/Kernel64/Source/Main.c
         64OS/Kernel64/Source/Page.c
-)
+        64OS/Kernel64/Source/Descriptor.c 64OS/Kernel64/Source/Utility.c)
 
