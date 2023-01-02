@@ -43,12 +43,15 @@ add_executable(
 
 add_executable(
         64OS
-#        64OS/Kernel32/Source/Main.c
-#        64OS/ImageMaker.
+        #        64OS/Kernel32/Source/Main.c
+        #        64OS/ImageMaker.
 
-#        64OS/Kernel32/Source/Page.c
+        #        64OS/Kernel32/Source/Page.c
         64OS/Kernel64/Source/Keyboard.c
         64OS/Kernel64/Source/Main.c
         64OS/Kernel64/Source/Page.c
-        64OS/Kernel64/Source/Descriptor.c 64OS/Kernel64/Source/Utility.c)
+        64OS/Kernel64/Source/Descriptor.c
+        64OS/Kernel64/Source/Utility.c
+        64OS/Kernel64/Source/PIC.c
+        64OS/Kernel64/Source/InterruptHandler.c)
 

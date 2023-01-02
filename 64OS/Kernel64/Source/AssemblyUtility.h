@@ -19,4 +19,10 @@ void kLoadTR(WORD wTSSSegmentOffset);
 
 void kLoadIDTR(QWORD qwIDTRAddress);
 
+void kEnableInterrupt(void);
+
+void kDisableInterrupt(void);
+
+QWORD kReadRFLAGS(void);
+
 #endif //CRAFTING_ASSEMBLYUTILITY_H
