@@ -19,6 +19,8 @@ void kISROverflow(void);
 
 void kISRBoundRangeExceeded(void);
 
+void kISRInvalidOpCode(void);
+
 void kISRDeviceNotAvailable(void);
 
 void kISRDoubleFault(void);
