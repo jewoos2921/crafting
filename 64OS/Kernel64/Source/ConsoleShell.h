@@ -1,0 +1,8 @@
+//
+// Created by jewoo on 2023-01-05.
+//
+
+#ifndef CRAFTING_CONSOLESHELL_H
+#define CRAFTING_CONSOLESHELL_H
+
+#endif //CRAFTING_CONSOLESHELL_H

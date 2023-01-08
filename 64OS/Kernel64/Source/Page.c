@@ -21,7 +21,8 @@ void kInitializePageTables(void) {
     // PML4 테이블 생성
     // 첫 번째 엔트리외에 나머지는 모두 0으로 초기화
     pstPML4TENTRY = (PML4TENTRY *) 0x100000;
-    kSetPageEntryData(&(pstPML4TENTRY[0]), 0x00, 0x101000, PAGE_FLAGS_DEFAULT, 0);
+    kSetPageEntryData(&(pstPML4TENTRY[0]), 0x00,
+                      0x101000, PAGE_FLAGS_DEFAULT, 0);
     for (i = 1; i < PAGE_MAXENTRYCOUNT; ++i) {
         kSetPageEntryData(&(pstPML4TENTRY[i]), 0, 0, 0, 0);
     }
@@ -31,12 +32,14 @@ void kInitializePageTables(void) {
     // 64개의 엔트리를 설정하여 64GB까지 매핑함
     pstPDPTENTRY = (PDPTENTRY *) 0x101000;
     for (i = 1; i < 64; ++i) {
-        kSetPageEntryData(&(pstPDPTENTRY[i]), 0, 0x102000 + (i * PAGE_TABLESIZE),
+        kSetPageEntryData(&(pstPDPTENTRY[i]), 0,
+                          0x102000 + (i * PAGE_TABLESIZE),
                           PAGE_FLAGS_DEFAULT, 0);
     }
 
     for (i = 64; i < PAGE_MAXENTRYCOUNT; ++i) {
-        kSetPageEntryData(&(pstPDPTENTRY[i]), 0, 0, 0, 0);
+        kSetPageEntryData(&(pstPDPTENTRY[i]), 0,
+                          0, 0, 0);
     }
 
     // 페이지 디렉터리 테이블 생성
@@ -47,8 +50,10 @@ void kInitializePageTables(void) {
     for (i = 0; i < PAGE_MAXENTRYCOUNT * 64; ++i) {
         // 32 비트로의 상위 어드레스를 표현할 수 없으므로, MB 단위로 계산한 다음,
         // 최종 결과를 다시 4KB로 나누어 32비트 이상의 어드레스르 계산함
-        kSetPageEntryData(&(pstPDENTRY[i]), (i * (PAGE_DEFAULTSIZE >> 20)) >> 12,
-                          dwMappingAddress, PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0);
+        kSetPageEntryData(&(pstPDENTRY[i]),
+                          (i * (PAGE_DEFAULTSIZE >> 20)) >> 12,
+                          dwMappingAddress,
+                          PAGE_FLAGS_DEFAULT | PAGE_FLAGS_PS, 0);
         dwMappingAddress += PAGE_DEFAULTSIZE;
     }
 

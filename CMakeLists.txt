@@ -53,5 +53,13 @@ add_executable(
         64OS/Kernel64/Source/Descriptor.c
         64OS/Kernel64/Source/Utility.c
         64OS/Kernel64/Source/PIC.c
-        64OS/Kernel64/Source/InterruptHandler.c 64OS/Kernel64/Source/Queue.c)
+        64OS/Kernel64/Source/InterruptHandler.c
+        64OS/Kernel64/Source/Queue.c
+        64OS/Kernel64/Source/Console.c
+        64OS/Kernel64/Source/ConsoleShell.c
+
+
+
+
+        64OS/Utility/Files/BTree.c)
 

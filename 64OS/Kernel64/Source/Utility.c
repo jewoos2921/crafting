@@ -3,6 +3,7 @@
 //
 #include "Utility.h"
 #include "AssemblyUtility.h"
+#include <stdarg.h>
 
 
 // 메모리를 특정 캆으로 채움
