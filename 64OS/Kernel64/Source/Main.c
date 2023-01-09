@@ -6,6 +6,8 @@
 #include "Keyboard.h"
 #include "Descriptor.h"
 #include "PIC.h"
+#include "Console.h"
+#include "ConsoleShell.h"
 
 #include "Page.h"
 

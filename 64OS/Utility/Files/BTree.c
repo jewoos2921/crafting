@@ -281,9 +281,110 @@ int makeTreeMain(int argc, char *argv[]) {
                     }
                     pOverflow->pChild[DEGREE - 1] = pCurr->pChild[DEGREE - 1];
                     /* nKey 삽입 */
+                    nCount = DEGREE - 1;
+                    if (nKey < pOverflow->nElm[0]) {
+                        nPos = 0;
+                    } else if (nKey > pOverflow->nElm[(nCount - 1 > 0) ? nCount - 1 : 0]) {
+                        nPos = nCount;
+                    } else {
+                        for (i = 0; i < nCount - 1; ++i) {
+                            if (nKey > pOverflow->nElm[i] && nKey < pOverflow->nElm[i + 1]) {
+                                nPos = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    /* 기존 key들을 shift */
+                    for (i = DEGREE - 1; i >= nPos; --i) {
+                        pOverflow->nElm[i] = pOverflow->nElm[i - 1];
+                        pOverflow->pChild[i + 1] = pOverflow->pChild[i];
+                    }
+                    /* 삽입 */
+                    pOverflow->nElm[nPos] = nKey;
+                    pOverflow->pChild[nPos + 1] = NULL;
+                    if (pInKey) {
+                        pOverflow->pChild[nPos] = pInKey->pChild[0];
+                        pOverflow->pChild[nPos + 1] = pInKey->pChild[1];
+                    }
 
+                    /* 중간 값 구하기 */
+                    nPos = (DEGREE - 1) / 2;
+                    nKey = pOverflow->nElm[nPos];
+
+                    /* 오버플로를 pCurr과 새로운 노드에 분할 */
+                    /* pCurr를 clear한 후 pOverflow의 1st half를 복사 */
+                    for (i = 0; i < DEGREE - 1; ++i) {
+                        pCurr->nElm[i] = 0;
+                        pCurr->pChild[i] = NULL;
+                    }
+
+                    pCurr->pChild[DEGREE - 1] = NULL;
+                    for (i = 0; i < nPos; ++i) {
+                        pCurr->nElm[i] = pOverflow->nElm[i];
+                        pCurr->pChild[i] = pOverflow->pChild[i];
+                    }
+                    pCurr->pChild[nPos] = pOverflow->pChild[nPos];
+                    /* 새 노드에 2nd half를 복사 */
+                    pNewNode = CreateNode();
+                    for (i = nPos + 1; i < DEGREE; ++i) {
+                        pNewNode->nElm[i - nPos - 1] = pOverflow->nElm[i];
+                        pNewNode->pChild[i - nPos - 1] = pOverflow->pChild[i];
+                    }
+                    pNewNode->pChild[DEGREE - nPos - 1] = pOverflow->pChild[DEGREE];
+                    /* pInKey를 생성하여 key와 child를 삽입 */
+                    pInKey = CreateNode();
+                    pInKey->nElm[0] = nKey;
+                    pInKey->pChild[0] = pCurr;
+                    pInKey->pChild[1] = pNewNode;
+                    /* 위로 올라가며 삽입 반복 */
+                    if (pStackTop && pStackTop->pCurr) {
+                        /* 부모 node로 올려 보냄 */
+                        pCurr = PeepStackTop(pStackTop);
+                        pStackTop = PopFromStack(pStackTop);
+                    } else {
+                        /* 트리 레벨 증가 */
+                        /* pInKey가 새 root가 됨 */
+                        pCurr->bRoot = 0;
+                        pRoot = pInKey;
+                        pInKey->bRoot = 1;
+                        bFinished = 1;
+                    }
                 }
-            }
+            } while (bFinished == 0);
         }
+        PrintNodeElement(pRoot);
+        fprintf(pOutputStream, " \n");
+    }
+    printf("[B-Tree] Insertion Process Ended\n");
+    fclose(pInputStream);
+
+    /* b-tree에서 삭제: 삭제를 위한 초기화 */
+    pCurr = NULL;
+    pChild = NULL;
+    pNewNode = NULL;
+    pInKey = NULL;
+    pStackTop = NULL;
+    pOverflow = NULL;
+    nKey = 0;
+    bFinished = 0;
+    bFound = 0;
+    bOverflow = 0;
+    nCount = 0;
+
+    /* 삭제 시작 */
+    printf("[B-Tree] Delete Process Started\n");
+    for (j = (nElementCnt - DELETE_COUNT > 0
+              ? nElementCnt - DELETE_COUNT : 0); j < nElementCnt; ++j) {
+        /* 키값 가져오기 */
+        nKey = nInput[j];
+        printf("Key (%d) deleted \n", nKey);
+        fprintf(pOutputStream, "Key (%d) deleted \n", nKey);
+        bFound = 0;
+
+        /* Stack에 쌓으면서 key 값 찾기 */
+        while (pStackTop && pStackTop->pCurr) {
+            pStackTop = PopFromStack(pStackTop);
+        }
+
     }
 }

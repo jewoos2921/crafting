@@ -149,6 +149,7 @@ BYTE kGetCh(void) {
             return stData.bASCIICode;
         }
     }
+
 }
 
 // 문자열을 X, Y 위치에 출력
