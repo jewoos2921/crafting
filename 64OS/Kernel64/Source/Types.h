@@ -7,17 +7,19 @@
 #define CRAFTING_TYPES_H
 
 
-#define BYTE unsigned char
-#define WORD unsigned short
-#define DWORD unsigned int
-#define QWORD unsigned long
-#define BOOL unsigned short
+#define BYTE                            unsigned char
+#define WORD                            unsigned short
+#define DWORD                           unsigned int
+#define QWORD                           unsigned long
+#define BOOL                            unsigned short
 
-#define TRUE 1
-#define FALSE 0
-#define NIL 0
+#define TRUE                            1
+#define FALSE                           0
+#define NIL                             0
+
 
 #pragma pack (push, 1)
+
 // 비디오 모드 중 텍스트 모드 화면을 구성하는 자료구조
 typedef struct kCharactorStruct {
     BYTE bCharactor;

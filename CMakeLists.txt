@@ -61,5 +61,5 @@ add_executable(
 
 
 
-        64OS/Utility/Files/BTree.c)
+        64OS/Utility/Files/BTree.c 64OS/Kernel64/Source/PIT.c 64OS/Kernel64/Source/RTC.c)
 

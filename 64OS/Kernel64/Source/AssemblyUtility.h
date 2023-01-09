@@ -25,4 +25,6 @@ void kDisableInterrupt(void);
 
 QWORD kReadRFLAGS(void);
 
+QWORD kReadTSC(void);
+
 #endif //CRAFTING_ASSEMBLYUTILITY_H
