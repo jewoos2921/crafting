@@ -55,7 +55,7 @@ void kCls(const char *pcPrameterBuffer);
 
 void kShowTotalRAMSize(const char *pcPrameterBuffer);
 
-void kStrintToDecimalHexTest(const char *pcPrameterBuffer);
+void kStringToDecimalHexTest(const char *pcPrameterBuffer);
 
 void kShutdown(const char *pcPrameterBuffer);
 
