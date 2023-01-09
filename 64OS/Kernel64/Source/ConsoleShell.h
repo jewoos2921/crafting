@@ -59,4 +59,15 @@ void kStrintToDecimalHexTest(const char *pcPrameterBuffer);
 
 void kShutdown(const char *pcPrameterBuffer);
 
+void kSetTimer(const char *pcParameterBuffer);
+
+void kWaitUsingPIT(const char *pcParameterBuffer);
+
+void kReadTimeStampCounter(const char *pcParameterBuffer);
+
+void kMeasureProcessorSpeed(const char *pcParameterBuffer);
+
+void kShowDateAndTime(const char *pcParameterBuffer);
+
+
 #endif //CRAFTING_CONSOLESHELL_H
