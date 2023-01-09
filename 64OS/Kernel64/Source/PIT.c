@@ -26,9 +26,42 @@ void kInitializePIT(WORD wCount, BOOL bPeriodic) {
 
 // 카운터 0의 현재 값을 반환
 WORD kReadCounter0(void) {
+    BYTE bHighByte, bLowByte;
+    WORD wTemp = 0;
 
+    // PIT 컨트롤 레지스터(포트 0x43)에 래치 커맨드를 전송하여 카운터 0에 있는 현재 값을 읽음
+    kOutPortByte(PIT_PORT_CONTROL, PIT_COUNTER0_LATCH);
+
+
+    // 카운터 0(포트 0x40)에서 LSB -> MSB 순으로 카운터 값을 읽음
+    bLowByte = kInPortByte(PIT_PORT_COUNTER0);
+    bHighByte = kInPortByte(PIT_PORT_COUNTER0);
+
+    // 읽은 값을 16비트로 합하여 반환
+    wTemp = bHighByte;
+    wTemp = (wTemp << 8) | bLowByte;
+    return wTemp;
 }
 
-void kWaitUsingDirectPIT(WORD wCount) {
 
+// 카운터 0을 직접 설정하여 일정 시간 이상 대기
+//      함수를 호출하려면 PIT 컨트롤러의 설저이 바뀌므로, 이후에 PIT 컨트롤러를 재설정해야 함
+//      정확하게 측정하려면 함수 사용전에 인터럽트를 비활성화 하는 것이 좋음
+//      약 50ms 까지 측정 가능
+void kWaitUsingDirectPIT(WORD wCount) {
+    WORD wLastCounter0;
+    WORD wCurrentCounter0;
+
+    // PIT 컨트롤러 0-0xFFFF까지 반복해서 카운팅하도록 설정
+    kInitializePIT(0, TRUE);
+
+    // 지금부터 wCount 이상 증가할 때까지 대기
+    wLastCounter0 = kReadCounter0();
+    while (1) {
+        // 현재 카운터 0의 값을 반환
+        wCurrentCounter0 = kReadCounter0();
+        if (((wLastCounter0 - wCurrentCounter0) & 0xFFFF) >= wCount) {
+            break;
+        }
+    }
 }
