@@ -13,4 +13,6 @@ void kCommonInterruptHandler(int iVectorNumber);
 
 void kKeyboardHandler(int iVectorNumber);
 
+void kTimerHandler(int iVectorNumber);
+
 #endif //CRAFTING_INTERRUPTHANDLER_H

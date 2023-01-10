@@ -6,6 +6,14 @@
 #include "Descriptor.h"
 #include "Utility.h"
 
+
+// 스케줄러 관련 자료구조
+
+// ============================================================================
+//                      태스크 풀과 태스크 관련
+// ============================================================================
+
+
 // 파라미터를 이용해서 TCB를 설정
 void kSetUpTask(TCB *pstTCB, QWORD qwID, QWORD qwFlags, QWORD qwEntryPointAddress,
                 void *pvStackAddress, QWORD qwStackSize) {

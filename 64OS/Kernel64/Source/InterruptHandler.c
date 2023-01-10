@@ -6,6 +6,10 @@
 #include "PIC.h"
 #include "Keyboard.h"
 #include "Console.h"
+#include "Utility.h"
+#include "Task.h"
+#include "Descriptor.h"
+
 
 void kPrintString(int iX, int iY, const char *pcString);
 
@@ -42,7 +46,7 @@ void kCommonInterruptHandler(int iVectorNumber) {
     //=========================================================
 
     // EOI 전송
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+    kSendEOIToPIC(iVectorNumber - PIC_IRQ_START_VECTOR);
 }
 
 // 키보드 인터럽트의 핸들러
@@ -71,5 +75,25 @@ void kKeyboardHandler(int iVectorNumber) {
     }
 
     // EOI 전송
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+    kSendEOIToPIC(iVectorNumber - PIC_IRQ_START_VECTOR);
+}
+
+// 타이머 인터럽트의 핸들러
+void kTimerHandler(int iVectorNumber) {
+    char vcBuffer[] = "[INT: , ]";
+    static int g_iTimerInterruptCount = 0;
+
+    //==============================================================================
+    // 인터럽트가 발생했을음 알리려고 메시지를 출력하는 부분
+    // 인터럽트 벡터를 화면 오른쪽 위에 2자리 정수로 출력
+    vcBuffer[5] = '0' + iVectorNumber / 10;
+    vcBuffer[6] = '0' + iVectorNumber % 10;
+    // 발생한 횟수 출력
+    vcBuffer[8] = '0' + g_iTimerInterruptCount;
+    g_iTimerInterruptCount = (g_iTimerInterruptCount + 1) % 10;
+    kPrintString(70, 0, vcBuffer);
+    //==============================================================================
+
+    // EOI 전송
+    kSendEOIToPIC(iVectorNumber - PIC_IRQ_START_VECTOR);
 }

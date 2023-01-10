@@ -5,6 +5,8 @@ SECTION .text
 
 ; 외부에서 정의된 함수를 쓸 수 있도록
 extern kCommonExceptionHanlder, kCommonInterruptHandler, kKeyboardHandler
+extern kTimerHandler
+
 ; C 언어에서 호출할 수 있도록 이름을 노출함
 ; 예외 처리를 위한 ISR
 global kISRDivideError, kISRDebug, kISRNMI, kISRBreakPoint, kISROverflow
@@ -342,11 +344,11 @@ kISRETCException:
 
 ; #32 타이머 ISR
 kISRTimer:
-KSAVECONTEXT        ; 콘택스트를 저장한 뒤 셀렉터를 커널 데이터 디스크립터로 교체
+    KSAVECONTEXT        ; 콘택스트를 저장한 뒤 셀렉터를 커널 데이터 디스크립터로 교체
 
     ; 핸들러에 예외 번호를 호출하고 핸들러 호출
     mov rdi, 32
-    call kCommonInterruptHandler
+    call kTimerHandler
 
     KLOADCONTEXT ; 콘텍스트를 복원
     iretq        ; 인터럽트를 처리하고 이전에 수행하던 코드로 복원
