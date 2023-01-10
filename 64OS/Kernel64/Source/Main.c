@@ -37,17 +37,17 @@ int main() {
 
     kPrintString(0, 12, "GDT Initialize And Switch For IA-32e Mode...[   ]");
     kInitializeGDTTableAndTSS();
-    kLoadGDTR(GDTR_STARADDRESS);
+    kLoadGDTR(GDTR_STAR_ADDRESS);
     kPrintString(45, 12, "Pass");
 
     kPrintString(0, 13, "TSS Segment Load........................[    ]");
-    kLoadTR(GDT_TSSSEGMENT);
+    kLoadTR(GDT_TSS_SEGMENT);
     kPrintString(45, 13, "Pass");
 
 
     kPrintString(0, 14, "IDT Initialize..........................[      ]");
     kInitializeIDTTables();
-    kLoadGDTR(IDTR_STARTADDRESS);
+    kLoadGDTR(IDTR_START_ADDRESS);
     kPrintString(45, 14, "Pass");
 
     kPrintString(0, 15, "Keyboard Activate And Queue Initialize.......[      ]");

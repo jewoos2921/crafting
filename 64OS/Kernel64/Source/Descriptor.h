@@ -39,20 +39,20 @@
 #define GDT_FLAGS_UPPER_TSS                 (GDT_FLAGS_UPPER_G)
 
 // 세그먼트 디스크립터 오프셋
-#define GDT_KERNELCODESEGMENT               0x08
-#define GDT_KERNELDATASEGMENT               0x10
-#define GDT_TSSSEGMENT                      0x18
+#define GDT_KERNEL_CODE_SEGMENT               0x08
+#define GDT_KERNEL_DATA_SEGMENT               0x10
+#define GDT_TSS_SEGMENT                      0x18
 
 // 기타 GDT에 관련된 매크로
 // GDTR의 시작 어드레스, 1MB에서 256KB까지는 페이지 테이블 영역
-#define GDTR_STARADDRESS                    0x142000
+#define GDTR_STAR_ADDRESS                    0x142000
 // 8바이트 엔트리의 개수, 널 디스크립터/커널 코드/커널 데이터
-#define GDT_MAXENTRY8COUNT                  3
+#define GDT_MAX_ENTRY_8_COUNT                  3
 // 16바이트 엔트리의 개수, TSS
-#define GDT_MAXENTRY16COUNT                 1
+#define GDT_MAX_ENTRY_16_COUNT                 1
 // GDT 테이블의 크기
-#define GDT_TABLESIZE                       ((sizeof(GDTENTRY8) * GDT_MAXENTRY8COUNT) + (sizeof(GDTENTRY16) * GDT_MAXENTRY16COUNT))
-#define TSS_SEGMENTSIZE                     (sizeof(TSSSEGMENT))
+#define GDT_TABLE_SIZE                       ((sizeof(GDTENTRY8) * GDT_MAX_ENTRY_8_COUNT) + (sizeof(GDTENTRY16) * GDT_MAX_ENTRY_16_COUNT))
+#define TSS_SEGMENT_SIZE                     (sizeof(TSSSEGMENT))
 
 //======================================================================================================================
 // IDT
@@ -74,16 +74,16 @@
 
 // 기타 IDT에 관련된 매트로
 // IDT 엔트리의 개수
-#define IDT_MAXENTRYCOUNT 100
+#define IDT_MAX_ENTRY_COUNT 100
 // IDTR의 시작 어드레스, TSS 세그먼트의 뒤쪽에 위치
-#define IDTR_STARTADDRESS       (GDTR_STARADDRESS + sizeof (GDTR) + GDT_TABLESIZE + TSS_SEGMENTSIZE)
+#define IDTR_START_ADDRESS       (GDTR_STAR_ADDRESS + sizeof (GDTR) + GDT_TABLE_SIZE + TSS_SEGMENT_SIZE)
 // IDT 테이블의 시작 어드레스
-#define IDT_STARTADDRESS        (IDTR_STARTADDRESS + sizeof(IDTR))
+#define IDT_START_ADDRESS        (IDTR_START_ADDRESS + sizeof(IDTR))
 // IDT 테이블의 전체 크기
-#define IDT_TABLESIZE           (IDT_MAXENTRYCOUNT  * sizeof(IDTENTRY))
+#define IDT_TABLE_SIZE           (IDT_MAX_ENTRY_COUNT  * sizeof(IDTENTRY))
 
 // IST의 시작 어드레스
-#define IST_STARTADDRESS 0x700000
+#define IST_START_ADDRESS 0x700000
 // IST의 크기
 #define IST_SIZE 0x100000
 

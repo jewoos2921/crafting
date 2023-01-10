@@ -230,11 +230,11 @@ static KEYBOARDMANAGER gs_stKeyboardManager = {0,};
 
 // 키를 저장하는 큐와 버퍼 정의
 static QUEUE gs_stKeyQueue;
-static KEYDATA gs_vstKeyQueueBuffer[KEY_MAXQUEUECOUNT];
+static KEYDATA gs_vstKeyQueueBuffer[KEY_MAX_QUEUE_COUNT];
 
 
 // 스캔 코드를 ASCII 코드로 변환하는 테이블
-static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPINGTABLEMAXCOUNT] = {
+static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {KEY_NONE,       KEY_NONE},
         {KEY_ESC,        KEY_ESC},
         {'1',          '!'},
@@ -295,17 +295,17 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPINGTABLEMAXCOUNT] = {
         {' ',          ' '},
         {KEY_CAPSLOCK,   KEY_CAPSLOCK},
         {KEY_F1,         KEY_F1},
-        {KEY_F2,         KEY_F2},
-        {KEY_F3,         KEY_F3},
-        {KEY_F4,         KEY_F4},
-        {KEY_F5,         KEY_F5},
-        {KEY_F6,         KEY_F6},
-        {KEY_F7,         KEY_F7},
-        {KEY_F8,         KEY_F8},
-        {KEY_F9,         KEY_F9},
-        {KEY_F10,        KEY_F10},
-        {KEY_NUMLOCK,    KEY_NUMLOCK},
-        {KEY_SCROLLLOCK, KEY_SCROLLLOCK},
+        {KEY_F2,          KEY_F2},
+        {KEY_F3,          KEY_F3},
+        {KEY_F4,          KEY_F4},
+        {KEY_F5,          KEY_F5},
+        {KEY_F6,          KEY_F6},
+        {KEY_F7,          KEY_F7},
+        {KEY_F8,          KEY_F8},
+        {KEY_F9,          KEY_F9},
+        {KEY_F10,         KEY_F10},
+        {KEY_NUMLOCK,     KEY_NUMLOCK},
+        {KEY_SCROLL_LOCK, KEY_SCROLL_LOCK},
         {KEY_HOME,     '7'},
         {KEY_UP,       '8'},
         {KEY_PAGEUP,   '9'},
@@ -453,7 +453,7 @@ BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlag
     if (bScanCode == 0xE1) {
         *pbASCIICode = KEY_PAUSE;
         *pbFlags = KEY_FLAGS_DOWN;
-        gs_stKeyboardManager.iSkipCountForPause = KEY_SKIPCOUNTFORPAUSE;
+        gs_stKeyboardManager.iSkipCountForPause = KEY_SKIP_COUNT_FOR_PAUSE;
         return TRUE;
     }
 
@@ -475,7 +475,7 @@ BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlag
 
     // 확장 키 유무 설정
     if (gs_stKeyboardManager.bExtendedCodeIn == TRUE) {
-        *pbFlags = KEY_FLAGS_EXTENDEDKEY;
+        *pbFlags = KEY_FLAGS_EXTENDED_KEY;
         gs_stKeyboardManager.bExtendedCodeIn = FALSE;
     } else {
         *pbFlags = 0;
@@ -496,7 +496,7 @@ BOOL kInitializeKeyboard(void) {
     // 큐 초기화
     kInitializeQueue(&gs_stKeyQueue,
                      gs_vstKeyQueueBuffer,
-                     KEY_MAXQUEUECOUNT,
+                     KEY_MAX_QUEUE_COUNT,
                      sizeof(KEYDATA));
     // 키보드 활성화
     return kActivateKeyboard();

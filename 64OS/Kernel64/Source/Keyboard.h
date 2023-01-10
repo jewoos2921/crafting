@@ -11,15 +11,15 @@
 
 // 매크로
 // Pause 키를 처리하기 위해 무시해야 하는 나머지 스캔 코드의 수
-#define KEY_SKIPCOUNTFORPAUSE 2
+#define KEY_SKIP_COUNT_FOR_PAUSE 2
 
 // 키 상태에 대한 플래그
 #define KEY_FLAGS_UP                0x00
 #define KEY_FLAGS_DOWN              0x01
-#define KEY_FLAGS_EXTENDEDKEY       0x02
+#define KEY_FLAGS_EXTENDED_KEY       0x02
 
 // 스캔 코드 매핑 테이블에 대한 매크로
-#define KEY_MAPPINGTABLEMAXCOUNT    89
+#define KEY_MAPPING_TABLE_MAX_COUNT    89
 
 #define KEY_NONE                    0x00
 #define KEY_ENTER                   '\n'
@@ -43,7 +43,7 @@
 #define KEY_F9 0x8F
 #define KEY_F10 0x90
 #define KEY_NUMLOCK 0x91
-#define KEY_SCROLLLOCK 0x92
+#define KEY_SCROLL_LOCK 0x92
 #define KEY_HOME    0x93
 #define KEY_UP      0x94
 #define KEY_PAGEUP  0x95
@@ -60,7 +60,7 @@
 #define KEY_PAUSE   0xA0
 
 // 키 큐의 최대 크기
-#define KEY_MAXQUEUECOUNT               100
+#define KEY_MAX_QUEUE_COUNT               100
 
 // 구조체
 #pragma pack(push, 1)

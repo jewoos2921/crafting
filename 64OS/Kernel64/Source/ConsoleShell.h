@@ -69,5 +69,6 @@ void kMeasureProcessorSpeed(const char *pcParameterBuffer);
 
 void kShowDateAndTime(const char *pcParameterBuffer);
 
+void kCreateTestTask(const char *pcParameterBuffer);
 
 #endif //CRAFTING_CONSOLESHELL_H

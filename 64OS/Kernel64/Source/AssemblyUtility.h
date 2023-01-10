@@ -7,6 +7,7 @@
 #define CRAFTING_ASSEMBLYUTILITY_H
 
 #include "Types.h"
+#include "Task.h"
 
 // 함수
 BYTE kInPortByte(WORD wPort);
@@ -26,5 +27,7 @@ void kDisableInterrupt(void);
 QWORD kReadRFLAGS(void);
 
 QWORD kReadTSC(void);
+
+void kSwitchContext(CONTEXT *pstCurrentContext, CONTEXT *pstNextContext);
 
 #endif //CRAFTING_ASSEMBLYUTILITY_H

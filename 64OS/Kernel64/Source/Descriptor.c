@@ -17,12 +17,12 @@ void kInitializeGDTTableAndTSS(void) {
     int i;
 
     // GDTR 설정
-    pstGDTR = (GDTR *) GDTR_STARADDRESS;
-    pstEntry = (GDTENTRY8 *) (GDTR_STARADDRESS + sizeof(GDTR));
-    pstGDTR->wLimit = GDT_TABLESIZE - 1;
+    pstGDTR = (GDTR *) GDTR_STAR_ADDRESS;
+    pstEntry = (GDTENTRY8 *) (GDTR_STAR_ADDRESS + sizeof(GDTR));
+    pstGDTR->wLimit = GDT_TABLE_SIZE - 1;
     pstGDTR->qwBaseAddress = (QWORD) pstEntry;
     // TSS 영역 설정
-    pstTSS = (TSSSEGMENT *) ((QWORD) pstEntry + GDT_TABLESIZE);
+    pstTSS = (TSSSEGMENT *) ((QWORD) pstEntry + GDT_TABLE_SIZE);
 
     // NULL, 64bit Code/Data, TSS를 위해 총 4개의 세그먼트를 생성
     kSetGDTEntry8(&(pstEntry[0]), 0, 0, 0, 0, 0);
@@ -67,7 +67,7 @@ void kSetGDTEntry16(GDTENTRY16 *pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
 // TSS 세그먼트의 정보를 초기화
 void kInitializeTSSSegment(TSSSEGMENT *pstTSS) {
     kMemSet(pstTSS, 0, sizeof(TSSSEGMENT));
-    pstTSS->qwIST[0] = IST_STARTADDRESS + IST_SIZE;
+    pstTSS->qwIST[0] = IST_START_ADDRESS + IST_SIZE;
     // IO를 TSS의 limit 값보다 크게 설정함으로써 IO Map을 사용하지 않도록 함
     pstTSS->wIOMapBaseAddress = 0xFFFF;
 }
@@ -82,11 +82,11 @@ void kInitializeIDTTables(void) {
     int i;
 
     // IDTR의 시작 어드레스
-    pstIDTR = (IDTR *) IDTR_STARTADDRESS;
+    pstIDTR = (IDTR *) IDTR_START_ADDRESS;
     // IDT 테이블의 정보 생성
-    pstEntry = (IDTENTRY *) (IDTR_STARTADDRESS + sizeof(IDTR));
+    pstEntry = (IDTENTRY *) (IDTR_START_ADDRESS + sizeof(IDTR));
     pstIDTR->qwBaseAddress = (QWORD) pstEntry;
-    pstIDTR->wLimit = IDT_TABLESIZE - 1;
+    pstIDTR->wLimit = IDT_TABLE_SIZE - 1;
 
     //=================================================================================================================
     // 예외 ISR 등록
@@ -175,7 +175,7 @@ void kInitializeIDTTables(void) {
                  IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
     kSetIDTEntry(&(pstEntry[47]), kISRHDD2, 0x08, IDT_FLAGS_IST1,
                  IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
-    for (i = 48; i < IDT_MAXENTRYCOUNT; i++) {
+    for (i = 48; i < IDT_MAX_ENTRY_COUNT; i++) {
         kSetIDTEntry(&(pstEntry[i]), kISRETCInterrupt, 0x08,
                      IDT_FLAGS_IST1, IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
     }
