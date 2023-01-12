@@ -14,6 +14,8 @@
 // 보호 모드 커널의 C언어 엔트리 포인트
 #include "ModeSwitch.h"
 #include "AssemblyUtility.h"
+#include "Utility.h"
+#include "PIT.h"
 
 void kPrintString(int iX, int iY, const char *pcString);
 
@@ -25,75 +27,141 @@ void kCopyKernel64ImageTo2Mbyte(void);
 
 
 int main() {
+    int iCursorX, iCursorY;
 
-    char vcTemp[2] = {0,};
-    BYTE bTemp;
-    DWORD i;
-    KEYDATA stData;
+    kInitializeConsole(0, 10);
+    kPrintf("Switch to IA-32e Mode Success~!!\n");
+    kPrintf("IA-32e C Language Kernel Start.............[Pass]\n");
+    kPrintf("Initialize Console...................[Pass]\n");
 
-    // IA-32e 모드로 전환
-    kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
-    kPrintString(0, 11, "IA-32e C Language Kernel Start.............[Pass]");
-
-    kPrintString(0, 12, "GDT Initialize And Switch For IA-32e Mode...[   ]");
+    // 부팅 상황을 화면에 출력
+    kGetCursor(&iCursorX, &iCursorY);
+    kPrintf("GDT Initialize And Switch For IA-32e Mode...[   ]");
     kInitializeGDTTableAndTSS();
     kLoadGDTR(GDTR_STAR_ADDRESS);
-    kPrintString(45, 12, "Pass");
+    kSetCursor(45, iCursorY++);
+    kPrintf("Pass\n");
 
-    kPrintString(0, 13, "TSS Segment Load........................[    ]");
+    kPrintf("TSS Segment Load.........................[     ]");
     kLoadTR(GDT_TSS_SEGMENT);
-    kPrintString(45, 13, "Pass");
+    kSetCursor(45, iCursorY++);
+    kPrintf("Pass\n");
 
-
-    kPrintString(0, 14, "IDT Initialize..........................[      ]");
+    kPrintf("IDT Initialize..........................[      ]");
     kInitializeIDTTables();
     kLoadGDTR(IDTR_START_ADDRESS);
-    kPrintString(45, 14, "Pass");
+    kSetCursor(45, iCursorY++);
+    kPrintf("Pass\n");
 
-    kPrintString(0, 15, "Keyboard Activate And Queue Initialize.......[      ]");
+    kPrintf("Total RAM Size Check.....................[     ]");
+    kCheckTotalRAMSize();
+    kSetCursor(45, iCursorY++);
+    kPrintf("Pass] ,Size= %d MB\n", kGetTotalRAMSize());
 
+    kPrintf("TCB Pool And Scheduler Initialzie.......[Pass]\n");
+    iCursorY++;
+    kInitializeScheduler();
+    // 1ms당 한 번씩 인터럽트가 발생하도록 설정
+    kInitializePIT(MSTOCOUNT(1), 1);
 
+    kPrintf("Keyboard Activate And Queue Initialize......[    ]");
     // 키보드를 활성화
     if (kInitializeKeyboard() == TRUE) {
-        kPrintString(45, 15, "Pass");
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
         kChangeKeyboardLED(FALSE, FALSE, FALSE);
     } else {
-        kPrintString(45, 15, "Fail");
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
         while (1);
     }
 
-    kPrintString(0, 16, "PIC Controller And Interrupt Initialize....[   ]");
+    kPrintf("PIC Controller And Interrupt Initialize....[   ]");
     // PIC 컨트롤러 초기화 및 모든 인터럽트 활성화
     kInitializePIC();
     kMaskPICInterrupt(0);
     kEnableInterrupt();
-    kPrintString(45, 16, "Pass");
+    kSetCursor(45, iCursorY++);
+    kPrintf("Pass\n");
 
-    while (1) {
+    // 셸을 시작
+    kStartConsoleShell();
+}
 
-        // 키가 큐에 데이터가 있으면 키를 처리
-        if (kGetKeyFromKeyQeueue(&stData) == TRUE) {
-            // 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력
-            if (stData.bFlags & KEY_FLAGS_DOWN) {
 
-                // 키 데이터의 ASCII 코드 값을 저장
-                vcTemp[0] = stData.bASCIICode;
-                kPrintString(i++, 17, vcTemp);
-                // 0이 입력되면 변수를 0으로 나누어 Divide Error 예외(벡터 0번)를 발생시킴
-                if (vcTemp[0] == '0') {
-                    // 아래 코드를 수행하면 Divide Error 예외가 발생하여
-                    // 커널의 임시 핸들러가 수행됨
-                    bTemp = bTemp / 0;
-                }
-            }
-        }
-    }
+
+//
+//
+//int main() {
+//
+//    char vcTemp[2] = {0,};
+//    BYTE bTemp;
+//    DWORD i;
+//    KEYDATA stData;
+//
+//    // IA-32e 모드로 전환
+//    kPrintString(0, 10, "Switch to IA-32e Mode Success~!!");
+//    kPrintString(0, 11, "IA-32e C Language Kernel Start.............[Pass]");
+//
+//    kPrintString(0, 12, "GDT Initialize And Switch For IA-32e Mode...[   ]");
+//    kInitializeGDTTableAndTSS();
+//    kLoadGDTR(GDTR_STAR_ADDRESS);
+//    kPrintString(45, 12, "Pass");
+//
+//    kPrintString(0, 13, "TSS Segment Load........................[    ]");
+//    kLoadTR(GDT_TSS_SEGMENT);
+//    kPrintString(45, 13, "Pass");
+//
+//
+//    kPrintString(0, 14, "IDT Initialize..........................[      ]");
+//    kInitializeIDTTables();
+//    kLoadGDTR(IDTR_START_ADDRESS);
+//    kPrintString(45, 14, "Pass");
+//
+//    kPrintString(0, 15, "Keyboard Activate And Queue Initialize.......[      ]");
+//
+//
+//    // 키보드를 활성화
+//    if (kInitializeKeyboard() == TRUE) {
+//        kPrintString(45, 15, "Pass");
+//        kChangeKeyboardLED(FALSE, FALSE, FALSE);
+//    } else {
+//        kPrintString(45, 15, "Fail");
+//        while (1);
+//    }
+//
+//    kPrintString(0, 16, "PIC Controller And Interrupt Initialize....[   ]");
+//    // PIC 컨트롤러 초기화 및 모든 인터럽트 활성화
+//    kInitializePIC();
+//    kMaskPICInterrupt(0);
+//    kEnableInterrupt();
+//    kPrintString(45, 16, "Pass");
+//
+//    while (1) {
+//
+//        // 키가 큐에 데이터가 있으면 키를 처리
+//        if (kGetKeyFromKeyQeueue(&stData) == TRUE) {
+//            // 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력
+//            if (stData.bFlags & KEY_FLAGS_DOWN) {
+//
+//                // 키 데이터의 ASCII 코드 값을 저장
+//                vcTemp[0] = stData.bASCIICode;
+//                kPrintString(i++, 17, vcTemp);
+//                // 0이 입력되면 변수를 0으로 나누어 Divide Error 예외(벡터 0번)를 발생시킴
+//                if (vcTemp[0] == '0') {
+//                    // 아래 코드를 수행하면 Divide Error 예외가 발생하여
+//                    // 커널의 임시 핸들러가 수행됨
+//                    bTemp = bTemp / 0;
+//                }
+//            }
+//        }
+//    }
 
 
 //    kSwitchAndExecute64bitKernel();
 //
 //    while (1);
-}
+//}
 
 
 

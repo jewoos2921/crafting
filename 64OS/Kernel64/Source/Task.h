@@ -94,7 +94,7 @@ typedef struct kTCBPoolManagerStruct {
 // 스케줄러의 상태를 관리하는 자료구조
 typedef struct kSchedulerStruct {
     // 현재 수행 중인 태스크
-    TCB *pstrRunning;
+    TCB *pstRunningTask;
     // 현재 수행중인 태스크가 사용할 수 있는 프로세서 시간
     int iProcessorTime;
 
@@ -116,7 +116,7 @@ void kFreeTCB(QWORD qwID);
 
 TCB *kCreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
 
-void kSetUpTask(TCB *pstTCB, QWORD qwID, QWORD qwFlags, QWORD qwEntryPointAddress,
+void kSetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
                 void *pvStackAddress, QWORD qwStackSize);
 
 // =========================================================================================
@@ -136,7 +136,7 @@ void kSchedule(void);
 
 BOOL kScheduleInterrupt(void);
 
-BOOL kDecreaseProcessorTime(void);
+void kDecreaseProcessorTime(void);
 
 BOOL kIsProcessorTimeExpired(void);
 
