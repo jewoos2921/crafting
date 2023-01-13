@@ -2,11 +2,16 @@
 [BITS 64] ;이하의 코드는 64비트 코드로 설정
 SECTION .text ; text 섹션(세그먼트)을 정의
 
+; 외부에서 정의된 함수를 쓸 수 있도록 선언(Import)
+extern Main
+
 ; C 언어에서 호출할 수 있도록 이름을 노출함
 global kInPortByte, kOutPortByte, kLoadGDTR, kLoadTR, kLoadIDTR
 global kEnableInterrupt , kDisableInterrupt, kReadRFLAGS
 global kReadTSC
 global kSwitchContext
+global kHlt
+
 
 ; 포트로부터 1바이트를 읽음
 ; PARM: 포트번호
@@ -210,3 +215,10 @@ kSwitchContext:
     ; Context 자료구조에서 레지스터를 복원
     KLOADCONTEXT
     iretq
+
+; 프로세서를 쉬게 함
+;   PARAM: 없음
+kHlt:
+    hlt             ; 프로세서를 대기 상태로 진입시킴
+    hlt
+    ret

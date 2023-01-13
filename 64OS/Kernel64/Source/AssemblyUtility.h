@@ -30,4 +30,6 @@ QWORD kReadTSC(void);
 
 void kSwitchContext(CONTEXT *pstCurrentContext, CONTEXT *pstNextContext);
 
+void kHlt(void);
+
 #endif //CRAFTING_ASSEMBLYUTILITY_H
