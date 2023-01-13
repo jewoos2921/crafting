@@ -85,7 +85,8 @@ int main() {
     kSetCursor(45, iCursorY++);
     kPrintf("Pass\n");
 
-    // 셸을 시작
+    // 유휴 태스크를 수행하고 셸을 시작
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE, (QWORD) kIdleTask);
     kStartConsoleShell();
 }
 

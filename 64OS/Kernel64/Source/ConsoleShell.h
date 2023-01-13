@@ -10,7 +10,7 @@
 #define CONSOLE_SHELL_MAX_COMMAND_BUFFER_COUNT  300
 #define CONSOLE_SHELL_PROMPT_MESSAGE            "MINT64>"
 
-//
+// 문자열 포인터를 파라미터로 받는 함수 포인터
 typedef void (*CommandFunction)(const char *pcParameter);
 
 // 구조체
@@ -49,26 +49,34 @@ void kInitializeParameter(PARAMETER_LIST *pstList, const char *pcParameter);
 int kGetNextParameter(PARAMETER_LIST *pstList, char *pcParameter);
 
 // 커맨드를 처리하는 함수
-void kHelp(const char *pcPrameterBuffer);
+static void kHelp(const char *pcPrameterBuffer);
 
-void kCls(const char *pcPrameterBuffer);
+static void kCls(const char *pcPrameterBuffer);
 
-void kShowTotalRAMSize(const char *pcPrameterBuffer);
+static void kShowTotalRAMSize(const char *pcPrameterBuffer);
 
-void kStringToDecimalHexTest(const char *pcPrameterBuffer);
+static void kStringToDecimalHexTest(const char *pcPrameterBuffer);
 
-void kShutdown(const char *pcPrameterBuffer);
+static void kShutdown(const char *pcPrameterBuffer);
 
-void kSetTimer(const char *pcParameterBuffer);
+static void kSetTimer(const char *pcParameterBuffer);
 
-void kWaitUsingPIT(const char *pcParameterBuffer);
+static void kWaitUsingPIT(const char *pcParameterBuffer);
 
-void kReadTimeStampCounter(const char *pcParameterBuffer);
+static void kReadTimeStampCounter(const char *pcParameterBuffer);
 
-void kMeasureProcessorSpeed(const char *pcParameterBuffer);
+static void kMeasureProcessorSpeed(const char *pcParameterBuffer);
 
-void kShowDateAndTime(const char *pcParameterBuffer);
+static void kShowDateAndTime(const char *pcParameterBuffer);
 
-void kCreateTestTask(const char *pcParameterBuffer);
+static void kCreateTestTask(const char *pcParameterBuffer);
+
+static void kChangeTaskPriority(const char *pcParameterBuffer);
+
+static void kShowTaskList(const char *pcParameterBuffer);
+
+static void kKillTask(const char *pcParameterBuffer);
+
+static void kCPULoad(const char *pcParameterBuffer);
 
 #endif //CRAFTING_CONSOLESHELL_H
