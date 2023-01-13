@@ -54,6 +54,27 @@
 // 태스크가 최대로 쓸 수 있는 프로세스 시간(ms)
 #define TASK_PROCESSOR_TIME             5
 
+// 준비 리스트 수
+#define TASK_MAX_READY_LIST_COUNT       5
+
+// 태스크의 우선순위
+#define TASK_FLAGS_HIGHEST              0
+#define TASK_FLAGS_HIGH                 1
+#define TASK_FLAGS_MEDIUM               2
+#define TASK_FLAGS_LOW                  3
+#define TASK_FLAGS_LOWEST               4
+#define TASK_FLAGS_WAIT                 0xFF
+
+// 태스크의 플래그
+#define TASK_FLAGS_END_TASK             0x8000000000000000
+#define TASK_FLAGS_IDLE                 0x8000000000000000
+// 함수 매크로
+
+#define GET_PRIORITY(x)                 ((x) & 0xFF)
+#define SET_PRIORITY(x, priority)       ((x) = ((x) & 0xFFFFFFFFFFFFFF00) | (priority))
+#define GET_TCB_OFF_SET(x)              ((x) & 0xFFFFFFFF)
+
+
 // 구조체
 // 1바이트로 정렬
 #pragma pack(push, 1)
@@ -98,8 +119,20 @@ typedef struct kSchedulerStruct {
     // 현재 수행중인 태스크가 사용할 수 있는 프로세서 시간
     int iProcessorTime;
 
-    // 실행할 태스크가 준비 중인 리스틑
-    LIST stReadyList;
+    // 실행할 태스크가 준비 중인 리스트, 태스크의 우선순위에 따라 구분
+    LIST vstReadyList[TASK_MAX_READY_LIST_COUNT];
+
+    // 종료할 태스크가 대기중인 리스트
+    LIST stWaitList;
+
+    // 각 우선순위별로 태스크를 실행할 횟수를 저장하는 자료구조
+    int viExecuteCount[TASK_MAX_READY_LIST_COUNT];
+
+    // 프로세서 부하를 계산하기 위한 자료구조
+    QWORD qwProcessorLoad;
+
+    // 유후 태스크에서 사용한 프로세서 시간
+    QWORD qwSpendProcessorTimeInIdleTask;
 } SCHEDULER;
 
 #pragma pack(pop)
@@ -130,7 +163,7 @@ TCB *kGetRunningTask(void);
 
 TCB *kGetNextTaskToRun(void);
 
-void kAddTaskToReadyList(TCB *pstTask);
+BOOL kAddTaskToReadyList(TCB *pstTask);
 
 void kSchedule(void);
 
@@ -139,5 +172,30 @@ BOOL kScheduleInterrupt(void);
 void kDecreaseProcessorTime(void);
 
 BOOL kIsProcessorTimeExpired(void);
+
+TCB *kRemoveTaskFromReadyList(QWORD qwTaskID);
+
+BOOL kChangePriority(QWORD qwTaskID, BYTE bPriority);
+
+BOOL kEndTask(QWORD qwTaskID);
+
+void kExitTask(void);
+
+int kGetReadyTaskCount(void);
+
+int kGetTaskCount(void);
+
+TCB *kGetTCBInTCBPool(int iOffset);
+
+BOOL kIsTaskExist(QWORD qwID);
+
+QWORD kGetProcessorLoad(void);
+
+// =========================================================================================
+//      유휴 태스크 관련
+// =========================================================================================
+void kIdleTask(void);
+
+void kHaltProcessorByLoad(void);
 
 #endif //CRAFTING_TASK_H

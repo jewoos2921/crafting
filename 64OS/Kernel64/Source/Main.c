@@ -8,6 +8,7 @@
 #include "PIC.h"
 #include "Console.h"
 #include "ConsoleShell.h"
+#include "Task.h"
 
 #include "Page.h"
 
