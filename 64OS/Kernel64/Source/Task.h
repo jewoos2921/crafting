@@ -67,13 +67,21 @@
 
 // 태스크의 플래그
 #define TASK_FLAGS_END_TASK             0x8000000000000000
+#define TASK_FLAGS_SYSTEM               0x4000000000000000
+#define TASK_FLAGS_PROCESS              0x2000000000000000
+#define TASK_FLAGS_THREAD               0x1000000000000000
 #define TASK_FLAGS_IDLE                 0x8000000000000000
+
+
 // 함수 매크로
 
 #define GET_PRIORITY(x)                 ((x) & 0xFF)
 #define SET_PRIORITY(x, priority)       ((x) = ((x) & 0xFFFFFFFFFFFFFF00) | (priority))
 #define GET_TCB_OFF_SET(x)              ((x) & 0xFFFFFFFF)
 
+
+// 자식 스레드 링크에 연결된 stThreadLink 정보에서 태스크 자료구조(TCB) 위치를 계산하여 반환하는 매크로
+#define GET_TCB_FROM_THREAD_LINK(x)     (TCB*) ((QWORD) (x) - offsetof(TCB, stThreadLink))
 
 // 구조체
 // 1바이트로 정렬
@@ -84,7 +92,7 @@ typedef struct kContextStruct {
     QWORD vqRegister[TASK_REGISTER_COUNT];
 } CONTEXT;
 
-// 테스크의 상태를 관리하는 자료구조
+// 테스크(프로세스 및 스레드)의 상태를 관리하는 자료구조
 typedef struct kTaskControlBlockStruct {
     // 다음 데이터의 위치와 ID
     LIST_LINK stLink;
@@ -92,9 +100,24 @@ typedef struct kTaskControlBlockStruct {
     // 플래그
     QWORD qwFlags;
 
+    // 프로세스 메모리 영역의 시작과 크기
+    void *pvMemoryAddress;
+    QWORD qwMemorySize;
+
+    // =====================================================================
+    // 이하 스레드 정보
+    // =====================================================================
+    // 자식  스레드의 위치와 ID
+    LIST_LINK stThreadLink;
+
+    // 자식 스레드의 리스트
+    LIST stChildThreadList;
+
+    // 부모 프로세스의 ID
+    QWORD qwParentProcessID;
+
     // 컨텍스트
     CONTEXT stContext;
-
 
     // 스택의 어드레스와 크기
     void *pvStackAddress;
@@ -147,7 +170,8 @@ static TCB *kAllocateTCB(void);
 
 static void kFreeTCB(QWORD qwID);
 
-TCB *kCreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
+TCB *kCreateTask(QWORD qwFlags, void *pvMemoryAddress,
+                 QWORD qwMemorySize, QWORD qwEntryPointAddress);
 
 static void kSetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
                        void *pvStackAddress, QWORD qwStackSize);
@@ -187,7 +211,11 @@ int kGetTaskCount(void);
 
 TCB *kGetTCBInTCBPool(int iOffset);
 
+BOOL kIsTaskExist(QWORD qwID);
+
 QWORD kGetProcessorLoad(void);
+
+struct TCB *kGetProcessByThread(TCB *pstThread);
 
 // =========================================================================================
 //      유휴 태스크 관련

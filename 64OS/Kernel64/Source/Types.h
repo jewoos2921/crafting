@@ -17,6 +17,8 @@
 #define FALSE                           0
 #define NIL                             0
 
+// stddef.h 헤더에 포함된 offsetof() 매크로 내용
+#define offsetof(TYPE, MEMBER)  __builtin_offsetof(TYPE, MEMBER)
 
 #pragma pack (push, 1)
 
