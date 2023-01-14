@@ -141,16 +141,16 @@ typedef struct kSchedulerStruct {
 // =========================================================================================
 //      태스크 폴과 태스크 관련
 // =========================================================================================
-void kInitializeTCBPool(void);
+static void kInitializeTCBPool(void);
 
-TCB *kAllocateTCB(void);
+static TCB *kAllocateTCB(void);
 
-void kFreeTCB(QWORD qwID);
+static void kFreeTCB(QWORD qwID);
 
 TCB *kCreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
 
-void kSetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
-                void *pvStackAddress, QWORD qwStackSize);
+static void kSetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
+                       void *pvStackAddress, QWORD qwStackSize);
 
 // =========================================================================================
 //      스케줄러 관련
@@ -161,9 +161,9 @@ void kSetRunningTask(TCB *pstTask);
 
 TCB *kGetRunningTask(void);
 
-TCB *kGetNextTaskToRun(void);
+static TCB *kGetNextTaskToRun(void);
 
-BOOL kAddTaskToReadyList(TCB *pstTask);
+static BOOL kAddTaskToReadyList(TCB *pstTask);
 
 void kSchedule(void);
 
@@ -173,7 +173,7 @@ void kDecreaseProcessorTime(void);
 
 BOOL kIsProcessorTimeExpired(void);
 
-TCB *kRemoveTaskFromReadyList(QWORD qwTaskID);
+static TCB *kRemoveTaskFromReadyList(QWORD qwTaskID);
 
 BOOL kChangePriority(QWORD qwTaskID, BYTE bPriority);
 
@@ -186,8 +186,6 @@ int kGetReadyTaskCount(void);
 int kGetTaskCount(void);
 
 TCB *kGetTCBInTCBPool(int iOffset);
-
-BOOL kIsTaskExist(QWORD qwID);
 
 QWORD kGetProcessorLoad(void);
 
