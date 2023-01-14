@@ -352,3 +352,15 @@ int kVSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap) {
 QWORD kGetTickCount(void) {
     return g_qwTickCount;
 }
+
+// 밀리세컨드 동안 대기
+// PIT 컨트롤러의 인터럽트 발생횟수를 기준으로 시간을 계산
+void kSleep(QWORD qwMillisecond) {
+    QWORD qwLastTickCount;
+    qwLastTickCount = g_qwTickCount;
+
+    while ((g_qwTickCount - qwLastTickCount) <= qwMillisecond) {
+        kSchedule();
+    }
+}
+

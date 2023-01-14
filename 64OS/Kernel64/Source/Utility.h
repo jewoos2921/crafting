@@ -44,5 +44,6 @@ QWORD kGetTickCount(void);
 
 extern volatile QWORD g_qwTickCount;
 
+void kSleep(QWORD qwMillisecond);
 
 #endif //CRAFTING_UTILITY_H
