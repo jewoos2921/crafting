@@ -9,7 +9,7 @@
 #include "AssemblyUtility.h"
 
 // 시스템 전역에서 사용하는 데이터를 위한 잠금 함수
-BOOL KLockForSystemData(void) {
+BOOL kLockForSystemData(void) {
     return kSetInterruptFlag(FALSE);
 }
 
@@ -49,7 +49,7 @@ void kLock(MUTEX *pstMutext) {
 }
 
 // 태스크 사이에서 사용하는 데이터를 위한 잠금 해제 함수
-void Unlock(MUTEX *pstMutext) {
+void kUnlock(MUTEX *pstMutext) {
     // 뮤택스를 잠근 태스크가 아니면 실패
     if ((pstMutext->blockFlag == FALSE) || (pstMutext->qwTaskID |= kGetRunningTask()->stLink.qwID)) { return; }
 

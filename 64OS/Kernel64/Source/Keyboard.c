@@ -6,6 +6,8 @@
 #include "AssemblyUtility.h"
 #include "Keyboard.h"
 #include "Queue.h"
+#include "Synchronization.h"
+
 #include "Utility.h"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -235,8 +237,8 @@ static KEYDATA gs_vstKeyQueueBuffer[KEY_MAX_QUEUE_COUNT];
 
 // 스캔 코드를 ASCII 코드로 변환하는 테이블
 static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
-        {KEY_NONE,       KEY_NONE},
-        {KEY_ESC,        KEY_ESC},
+        {KEY_NONE,        KEY_NONE},
+        {KEY_ESC,         KEY_ESC},
         {'1',          '!'},
         {'2',          '@'},
         {'3',          '#'},
@@ -249,8 +251,8 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {'0',          ')'},
         {'-',          '_'},
         {'=',          '+'},
-        {KEY_BACKSPACE,  KEY_BACKSPACE},
-        {KEY_TAB,        KEY_TAB},
+        {KEY_BACKSPACE,   KEY_BACKSPACE},
+        {KEY_TAB,         KEY_TAB},
         {'q',          'Q'},
         {'w',          'W'},
         {'e',          'E'},
@@ -264,7 +266,7 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {'[',          '{'},
         {']',          '}'},
         {'\n',         '\n'},
-        {KEY_CTRL,       KEY_CTRL},
+        {KEY_CTRL,        KEY_CTRL},
         {'a',          'A'},
         {'s',          'S'},
         {'d',          'D'},
@@ -277,7 +279,7 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {';',          ':'},
         {'\'',         '\"'},
         {'`',          '~'},
-        {KEY_LSHIFT,     KEY_LSHIFT},
+        {KEY_LSHIFT,      KEY_LSHIFT},
         {'\\',         '|'},
         {'z',          'Z'},
         {'x',          'X'},
@@ -289,12 +291,12 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {',',          '<'},
         {'.',          '>'},
         {'/',          '?'},
-        {KEY_RSHIFT,     KEY_RSHIFT},
+        {KEY_RSHIFT,      KEY_RSHIFT},
         {'*',          '*'},
-        {KEY_LALT,       KEY_LALT},
+        {KEY_LALT,        KEY_LALT},
         {' ',          ' '},
-        {KEY_CAPSLOCK,   KEY_CAPSLOCK},
-        {KEY_F1,         KEY_F1},
+        {KEY_CAPSLOCK,    KEY_CAPSLOCK},
+        {KEY_F1,          KEY_F1},
         {KEY_F2,          KEY_F2},
         {KEY_F3,          KEY_F3},
         {KEY_F4,          KEY_F4},
@@ -319,11 +321,11 @@ static KEYMAPPINGENTRY gs_vsKeyMappingTable[KEY_MAPPING_TABLE_MAX_COUNT] = {
         {KEY_PAGEDOWN, '3'},
         {KEY_INS,      '0'},
         {KEY_DEL,      '.'},
-        {KEY_NONE,       KEY_NONE},
-        {KEY_NONE,       KEY_NONE},
-        {KEY_NONE,       KEY_NONE},
-        {KEY_F11,        KEY_F11},
-        {KEY_F12,        KEY_F12},
+        {KEY_NONE,        KEY_NONE},
+        {KEY_NONE,        KEY_NONE},
+        {KEY_NONE,        KEY_NONE},
+        {KEY_F11,         KEY_F11},
+        {KEY_F12,         KEY_F12},
 };
 
 // 스캔 코드가 알파벳 범위인지 여부를 반환
@@ -514,15 +516,16 @@ BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode) {
     // 스캔 코드를 ASCII 코드와 키 상태로 변환하여 키 데이터에 삽입
     if (kConvertScanCodeToASCIICode(bScanCode, &(stData.bASCIICode),
                                     &(stData.bFlags)) == TRUE) {
-        // 인터럽트 불가
-        bPreviousInterrupt = kSetInterruptFlag(FALSE);
+
+        // 임계 영역 시작
+        bPreviousInterrupt = kLockForSystemData();
 
         // 키 큐에서 삽입
         bResult = kPutQueue(&gs_stKeyQueue, &stData);
 
 
-        // 이전 인터럽트 플래그 복원
-        kSetInterruptFlag(bPreviousInterrupt);
+        // 임계 영역 끝
+        kUnlockForSystemData(bPreviousInterrupt);
     }
     return bResult;
 }
@@ -532,20 +535,15 @@ BOOL kGetKeyFromKeyQeueue(KEYDATA *pstData) {
     BOOL bResult;
     BOOL bPreviousInterrupt;
 
-    // 큐가 비었으면 키 데이터를 꺼낼 수 없음
-    if (kIsQueueEmpty(&gs_stKeyQueue) == TRUE) {
-        return FALSE;
-    }
 
-    // 인터럽트 불가
-    bPreviousInterrupt = kSetInterruptFlag(FALSE);
+    // 임계 영역 시작
+    bPreviousInterrupt = kLockForSystemData();
 
     // 키 큐에서 키 데이터를 제거
     bResult = kGetQueue(&gs_stKeyQueue, pstData);
 
-
-    // 이전 인터럽트 플래그 복원
-    kSetInterruptFlag(bPreviousInterrupt);
+    // 임계 영역 끝
+    kUnlockForSystemData(bPreviousInterrupt);
     return bResult;
 }
 

@@ -29,7 +29,7 @@ typedef struct kMutexStruct {
 
 
 // 함수
-BOOL KLockForSystemData(void);
+BOOL kLockForSystemData(void);
 
 void kUnlockForSystemData(BOOL bInterruptFlag);
 
@@ -37,7 +37,7 @@ void kInitializeMutex(MUTEX *pstMutext);
 
 void kLock(MUTEX *pstMutext);
 
-void Unlock(MUTEX *pstMutext);
+void kUnlock(MUTEX *pstMutext);
 
 
 #endif //CRAFTING_SYNCHRONIZATION_H

@@ -66,7 +66,8 @@ BOOL kGetQueue(QUEUE *pstQueue, void *pvData) {
     }
 
     // 제거 인덱스가 가리키는 위치에서 데이터의 크기만큼을 복사
-    kMemCpy(pvData, (char *) pstQueue->pvQueueArray + (pstQueue->iDataSize * pstQueue->iPutIndex),
+    kMemCpy(pvData, (char *) pstQueue->pvQueueArray
+                    + (pstQueue->iDataSize * pstQueue->iPutIndex),
             pstQueue->iDataSize);
 
     // 제거 인덱스를 변경하고 제거 동작을 수행했음을 기록
