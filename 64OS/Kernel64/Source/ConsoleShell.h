@@ -79,4 +79,7 @@ static void kKillTask(const char *pcParameterBuffer);
 
 static void kCPULoad(const char *pcParameterBuffer);
 
+static void kTestMutex(const char *pcParameterBuffer);
+
+
 #endif //CRAFTING_CONSOLESHELL_H

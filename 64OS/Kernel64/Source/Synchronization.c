@@ -64,3 +64,4 @@ void kUnlock(MUTEX *pstMutext) {
     pstMutext->dwLockCount = 0;
     pstMutext->blockFlag = FALSE;
 }
+
