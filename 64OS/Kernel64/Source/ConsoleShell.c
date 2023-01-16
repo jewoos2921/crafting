@@ -20,22 +20,20 @@ SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
         {"totalram",       "Show Total RAM Size",                                         kShowTotalRAMSize},
         {"strtod",         "String to Decial/Hex Convert",                                kStringToDecimalHexTest},
         {"shutdown",       "Shutdown And Reboot OS",                                      kShutdown},
-
         {"settimer",       "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", kSetTimer},
         {"wait",           "Wait ms Using PIT, ex)wait 100(ms)",                          kWaitUsingPIT},
         {"rdtsc",          "Read Time Stamp Counter",                                     kReadTimeStampCounter},
         {"cpuspeed",       "Measure Processor Speed",                                     kMeasureProcessorSpeed},
         {"date",           "Show Date And Time",                                          kShowDateAndTime},
         {"createtask",     "Create Task",                                                 kCreateTestTask},
-        {"changepriority", "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",
-                                                                                          kChangeTaskPriority},
+        {"changepriority", "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",   kChangeTaskPriority},
         {"tasklist",       "Show Task List",                                              kShowTaskList},
-        {"killtask",       "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",
-                                                                                          kKillTask},
+        {"killtask",       "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",         kKillTask},
         {"cpuload",        "Show Processor Load",                                         kCPULoad},
         {"testmutex",      "Test Mutex Function",                                         kTestMutex},
         {"testthread",     "Test Thread And Process Function",                            kTestThread},
         {"showmatrix",     "Show Matrix Screen",                                          kShowMatrix},
+        {"tstpie",         "Test PIE Calculation",                                        kTestPIE},
 
 };
 
@@ -776,4 +774,69 @@ void kShowMatrix(const char *pcParameterBuffer) {
     } else {
         kPrintf("Matrix Process Create Fail\n");
     }
+}
+
+
+// FPU를 테스트하는 태스크
+static void kFPUTestTask(void) {
+    double dValue1, dValue2;
+    TCB *pstRunningTask;
+    QWORD qwCount = 0;
+    QWORD qwRandomValue;
+    int i, iOffset;
+    char vcData[4] = {'-', '\\', '|', '/'};
+    CHARACTER *pstScreen = (CHARACTER *) CONSOLE_VIDEO_MEMORY_ADDRESS;
+
+    pstRunningTask = kGetRunningTask();
+
+    // 자신의 ID를 얻어서 화면 오프셋으로 사용
+    iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
+    iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
+
+    // 루프를 무한히 반복하면서 동일한 계산을 수행
+    while (1) {
+        dValue1 = 1;
+        dValue2 = 1;
+
+        for (i = 0; i < 10; i++) {
+            qwRandomValue = kRandom();
+            dValue1 *= (double) qwRandomValue;
+            dValue2 *= (double) qwRandomValue;
+
+            kSleep(1);
+
+            qwRandomValue = kRandom();
+            dValue1 /= (double) qwRandomValue;
+            dValue2 /= (double) qwRandomValue;
+        }
+
+        if (dValue1 != dValue2) {
+            kPrintf("Value Is Not Same~!!! [%f] != [%f]\n", dValue1, dValue2);
+            break;
+        }
+        qwCount++;
+
+        // 회전하는 바람개비를 표시
+        pstScreen[iOffset].bCharactor = vcData[qwCount % 4];
+
+        // 색깔 지정
+        pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
+    }
+}
+
+// 원주율 계산
+void kTestPIE(const char *pcParameterBuffer) {
+    double dResult;
+    int i;
+
+    kPrintf("PIE Cacluation Test\n");
+    kPrintf("Result: 355 / 113 = ");
+    dResult = (double) 355 / 113;
+    kPrintf("%d.%d%d\n", (QWORD) dResult, ((QWORD) (dResult * 10) % 10),
+            ((QWORD) (dResult * 100) % 10));
+
+    for (i = 0; i < 100; i++) {
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kFPUTestTask);
+    }
+
 }

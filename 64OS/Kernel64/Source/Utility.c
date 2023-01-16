@@ -271,16 +271,22 @@ int kSPrintf(char *pcBuffer, const char *pcFormatString, ...) {
 
 // vsprintf() 함수의 내부 구현
 //            버퍼에 포맷 문자열에 따라 데이터를 복사
+// 실수 출력 기능을 약식으로 제공, 소수저 셋째 자리에서 반올림하여 소수점 둘째 자리까지 표기
+// 반올림은 넘겨받은 실수에 0.005를 더하는 방법으로 처리
+// 가장 낮은 자리부터 10을 곱하거나 나눈 다음 정수로 변환하여 해당 자리의 값만 추출한다.
 int kVSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap) {
     QWORD i, j;
+    QWORD k;
     int iBufferIndex = 0;
     int iFormatLength, iCopyLength;
     char *pcCopyString;
     QWORD qwValue;
     int iValue;
+    double dValue;
 
     // 포맷 문자열의 길이를 읽어서 문자열의 길이만큼 데이터를 출력 버퍼에 출력
     iFormatLength = kStrLen(pcFormatString);
+
     for (i = 0; i < iFormatLength; i++) {
         // %로 시작하면 데이터 타입 문자로 처리
         if (pcFormatString[i] == '%') {
@@ -332,6 +338,28 @@ int kVSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap) {
                     qwValue = (QWORD) (va_arg(ap, QWORD));
                     iBufferIndex += kIToA(qwValue, pcBuffer + iBufferIndex, 16);
                     break;
+
+                    // 소수점 둘째 자리까지 실수를 출력
+                case 'f':
+                    dValue = (double) (va_arg(ap, double));
+                    // 셋째 자리에서 반올림 처리
+                    dValue += 0.005;
+                    // 소수점 둘째 자리부터 차례로 저장하여 버퍼를 뒤집음
+                    pcBuffer[iBufferIndex] = '0' + (QWORD) (dValue * 100) % 10;
+                    pcBuffer[iBufferIndex + 1] = '0' + (QWORD) (dValue * 10) % 10;
+                    pcBuffer[iBufferIndex + 2] = '.';
+                    for (k = 0;; k++) {
+                        // 정수 부분이 0이면 종료
+                        if (((QWORD) dValue == 0) && (k != 0)) { break; }
+                        pcBuffer[iBufferIndex + 3 + k] = '0' + ((QWORD) dValue % 10);
+                        dValue = dValue / 10;
+                    }
+                    pcBuffer[iBufferIndex + 3 + k] = '\0';
+                    // 값이 저장된 길이만큼 뒤집고 길이를 증가시킴
+                    kReverseString(pcBuffer + iBufferIndex);
+                    iBufferIndex += 3 + k;
+                    break;
+
                     // 위에 해당하지 않으면 문자를 그대로 출력하고 버퍼의 인덱스를 1만큼 이동
                 default:
                     pcBuffer[iBufferIndex] = pcFormatString[i];

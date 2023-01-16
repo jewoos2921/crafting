@@ -87,4 +87,6 @@ static void kTestThread(const char *pcParameterBuffer);
 
 static void kShowMatrix(const char *pcParameterBuffer);
 
+static void kTestPIE(const char *pcParameterBuffer);
+
 #endif //CRAFTING_CONSOLESHELL_H
