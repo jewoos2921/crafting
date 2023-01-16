@@ -15,4 +15,6 @@ void kKeyboardHandler(int iVectorNumber);
 
 void kTimerHandler(int iVectorNumber);
 
+void kDeviceNotAvailableHandler(int iVectorNumber);
+
 #endif //CRAFTING_INTERRUPTHANDLER_H
