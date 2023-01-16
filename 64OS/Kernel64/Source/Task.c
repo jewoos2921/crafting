@@ -71,7 +71,8 @@ static void kFreeTCB(QWORD qwID) {
     i = GET_TCB_OFF_SET(qwID);
 
     // TCB 를 촉기화하고 id 설정
-    kMemSet(&(gs_st_TCBPoolManager.pstStartAddress[i].stContext), 0, sizeof(CONTEXT));
+    kMemSet(&(gs_st_TCBPoolManager.pstStartAddress[i].stContext),
+            0, sizeof(CONTEXT));
     gs_st_TCBPoolManager.pstStartAddress[i].stLink.qwID = i;
 
     gs_st_TCBPoolManager.iUseCount--;
@@ -116,8 +117,7 @@ TCB *kCreateTask(QWORD qwFlags, void *pvMemoryAddress,
 
         // 부모 프로세스의 자식 스레드 리스트에 추가
         kAddListTotail(&(pstProcess->stChildThreadList), &(pstTask->stThreadLink));
-    }
-        // 프로세스는 파라미터로 넘어온 값을 그대로 설정
+    }   // 프로세스는 파라미터로 넘어온 값을 그대로 설정
     else {
         pstTask->qwParentProcessID = pstProcess->stLink.qwID;
         pstTask->pvMemoryAddress = pvMemoryAddress;
@@ -140,6 +140,9 @@ TCB *kCreateTask(QWORD qwFlags, void *pvMemoryAddress,
 
     // 자식 스레드 리스트를 초기화
     kInitializeList(&(pstTask->stChildThreadList));
+
+    // FPU 사용 여부를 사용하지 않는 것으로 초기화
+    pstTask->bFPUUsed = FALSE;
 
     // 임계 영역 시작
     bPreviousFlag = kLockForSystemData();
@@ -224,6 +227,9 @@ void kInitializeScheduler(void) {
     // 프로세서 사용률을 계산하는데 사용하는 자료구조 초기화
     gs_stScheduler.qwSpendProcessorTimeInIdleTask = 0;
     gs_stScheduler.qwProcessorLoad = 0;
+
+    // FPU를 사용한 태스크 ID를 유효하지 않은 값으로 초기화
+    gs_stScheduler.qwLastFPUUsedTaskID = TASK_INVALID_ID;
 }
 
 // 현재 수행 중인 태스크를 설정
@@ -382,6 +388,14 @@ void kSchedule(void) {
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += TASK_PROCESSOR_TIME - gs_stScheduler.iProcessorTime;
     }
 
+    // 다음 수행할 태스크가 FPU를 쓴 태스크가 아니라면 TS 비트 설정
+    if (gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID) {
+        kSetTS();
+    } else {
+        kClearTS();
+    }
+
+
     // 태스크 종료 플래그가 설정된 경우 콘택스트를 저장할 필요가 없으므로 ,
     // 대기 리스트에 삽입하고 콘텍스트 전환
     if (pstNextTask->qwFlags & TASK_FLAGS_END_TASK) {
@@ -395,7 +409,6 @@ void kSchedule(void) {
 
     // 프로세서 사용시간을 업데이트
     gs_stScheduler.iProcessorTime = TASK_PROCESSOR_TIME;
-    kSetInterruptFlag(bPreviousFlag);
 
     // 임계 영역 끝
     kUnlockForSystemData(bPreviousFlag);
@@ -449,9 +462,17 @@ BOOL kScheduleInterrupt(void) {
     kUnlockForSystemData(bPreviousFlag);
 
 
+    // 다음 수행할 태스크가 FPU를 쓴 태스크가 아니라면 TS 비트 설정
+    if (gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID) {
+        kSetTS();
+    } else {
+        kClearTS();
+    }
+
     // 전환해서 실행할 태스크를 Running Task로 설정하고 콘텍스트를 IST에 복사해서
     // 자동으로 태스크 전환이 일어나도록 함
     kMemCpy(pcContextAddress, &(pstNextTask->stContext), sizeof(CONTEXT));
+
     // 프로세서 사용 시간을 업데이트
     gs_stScheduler.iProcessorTime = TASK_PROCESSOR_TIME;
     return TRUE;
@@ -725,4 +746,18 @@ void kHaltProcessorByLoad(void) {
     } else if (gs_stScheduler.qwProcessorLoad < 95) {
         kHlt();
     }
+}
+
+// =========================================================================================
+//      FPU 관련
+// =========================================================================================
+
+// 마지막으로 FPU를 사용한 태스크 ID를 반환
+QWORD kGetLastFPUUsedTaskID(void) {
+    return gs_stScheduler.qwLastFPUUsedTaskID;
+}
+
+// 마지막으로 FPU를 사용한 태스크 ID를 설정
+void kSetLastFPUUsedTaskID(QWORD qwTaskID) {
+    gs_stScheduler.qwLastFPUUsedTaskID = qwTaskID;
 }
