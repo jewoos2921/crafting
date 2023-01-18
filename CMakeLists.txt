@@ -20,16 +20,18 @@ add_executable(
 
         acwj/acwj1_scanner_2parser/main.c
         acwj/acwj1_scanner_2parser/scan.c
-        acwj/acwj1_scanner_2parser/expression.c acwj/acwj1_scanner_2parser/tree.c)
+        acwj/acwj1_scanner_2parser/expression.c
+        acwj/acwj1_scanner_2parser/tree.c
+)
 
 add_executable(
         cray
+
         "cray/chunks of bytecode/memory.c"
         "cray/chunks of bytecode/chunk.c"
         "cray/chunks of bytecode/main.c"
         "cray/chunks of bytecode/debug.c"
         "cray/chunks of bytecode/value.c"
-
         "cray/chunks of bytecode/vm.c"
 )
 
@@ -57,9 +59,14 @@ add_executable(
         64OS/Kernel64/Source/Queue.c
         64OS/Kernel64/Source/Console.c
         64OS/Kernel64/Source/ConsoleShell.c
+        64OS/Utility/Files/BTree.c
+        64OS/Kernel64/Source/PIT.c
+        64OS/Kernel64/Source/RTC.c
+        64OS/Kernel64/Source/Task.c
+        64OS/Kernel64/Source/List.c
+        64OS/Kernel64/Source/Synchronization.c
+        64OS/Kernel64/Source/DynamicMemory.c
 
 
-
-
-        64OS/Utility/Files/BTree.c 64OS/Kernel64/Source/PIT.c 64OS/Kernel64/Source/RTC.c 64OS/Kernel64/Source/Task.c 64OS/Kernel64/Source/List.c 64OS/Kernel64/Source/Synchronization.c)
+        64OS/Utility/Files/Hashing.c)
 
