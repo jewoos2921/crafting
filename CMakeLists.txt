@@ -68,5 +68,5 @@ add_executable(
         64OS/Kernel64/Source/DynamicMemory.c
 
 
-        64OS/Utility/Files/Hashing.c)
+        64OS/Utility/Files/Hashing.c 64OS/Kernel64/Source/HardDisk.c)
 

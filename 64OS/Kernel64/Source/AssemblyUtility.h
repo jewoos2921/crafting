@@ -44,4 +44,8 @@ void kSetTS(void);
 
 void kClearTS(void);
 
+WORD kInPortWord(WORD wPort);
+
+void kOutPortWord(WORD wPort, WORD wData);
+
 #endif //CRAFTING_ASSEMBLYUTILITY_H
