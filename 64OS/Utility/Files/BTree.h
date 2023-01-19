@@ -9,9 +9,9 @@
 #include <malloc.h>
 #include <string.h>
 
-#define DEGREE 5 /* B-TREE의 차수 */
-#define MAX_ELEMENTS 1000 /* 입력되는 키의 최대 수 */
-#define DELETE_COUNT 10 /* 삭제시 빼줄 원소 수 */
+#define DEGREE 5                        /* B-TREE의 차수 */
+#define MAX_ELEMENTS 1000               /* 입력되는 키의 최대 수 */
+#define DELETE_COUNT 10                 /* 삭제시 빼 줄 원소 수 */
 
 
 /* 글로벌 변수 */
