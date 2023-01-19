@@ -5,7 +5,7 @@ SECTION .text
 
 ; 외부에서 정의된 함수를 쓸 수 있도록
 extern kCommonExceptionHanlder, kCommonInterruptHandler, kKeyboardHandler
-extern kTimerHandler
+extern kTimerHandler, kDeviceNotAvailableHandler, kHDDHandler
 
 ; C 언어에서 호출할 수 있도록 이름을 노출함
 ; 예외 처리를 위한 ISR
@@ -496,13 +496,14 @@ KSAVECONTEXT        ; 콘택스트를 저장한 뒤 셀렉터를 커널 데이�
     KLOADCONTEXT ; 콘텍스트를 복원
     iretq        ; 인터럽트를 처리하고 이전에 수행하던 코드로 복원
 
+
 ; #46, 하드 디스크 1 ISR
 kISRHDD1:
 KSAVECONTEXT        ; 콘택스트를 저장한 뒤 셀렉터를 커널 데이터 디스크립터로 교체
 
     ; 핸들러에 예외 번호를 호출하고 핸들러 호출
     mov rdi, 46
-    call kCommonInterruptHandler
+    call kHDDHandler
 
     KLOADCONTEXT ; 콘텍스트를 복원
     iretq        ; 인터럽트를 처리하고 이전에 수행하던 코드로 복원
@@ -513,10 +514,11 @@ KSAVECONTEXT        ; 콘택스트를 저장한 뒤 셀렉터를 커널 데이�
 
     ; 핸들러에 예외 번호를 호출하고 핸들러 호출
     mov rdi, 47
-    call kCommonInterruptHandler
+    call kHDDHandler
 
     KLOADCONTEXT ; 콘텍스트를 복원
     iretq        ; 인터럽트를 처리하고 이전에 수행하던 코드로 복원
+
 
 ; #48 이외의 모든 인터럽트에 대한 ISR
 kISRETCInterrupt:
