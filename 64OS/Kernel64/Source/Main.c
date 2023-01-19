@@ -9,14 +9,18 @@
 #include "Console.h"
 #include "ConsoleShell.h"
 #include "Task.h"
+#include "PIT.h"
+#include "DynamicMemory.h"
+
 
 #include "Page.h"
+
 
 // 보호 모드 커널의 C언어 엔트리 포인트
 #include "ModeSwitch.h"
 #include "AssemblyUtility.h"
 #include "Utility.h"
-#include "PIT.h"
+
 
 void kPrintString(int iX, int iY, const char *pcString);
 
@@ -62,6 +66,13 @@ int main() {
     kPrintf("TCB Pool And Scheduler Initialzie.......[Pass]\n");
     iCursorY++;
     kInitializeScheduler();
+
+    // 동적 메모리 초기화
+    kPrintf("Dynamic Memory Initialzie................[Pass]\n");
+    iCursorY++;
+    kInitializeDynamicMemory();
+
+
     // 1ms당 한 번씩 인터럽트가 발생하도록 설정
     kInitializePIT(MSTOCOUNT(1), 1);
 
@@ -86,7 +97,8 @@ int main() {
     kPrintf("Pass\n");
 
     // 유휴 태스크를 수행하고 셸을 시작
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE, (QWORD) kIdleTask);
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE,
+                0, 0, (QWORD) kIdleTask);
     kStartConsoleShell();
 }
 
