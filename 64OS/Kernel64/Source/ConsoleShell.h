@@ -89,4 +89,13 @@ static void kShowMatrix(const char *pcParameterBuffer);
 
 static void kTestPIE(const char *pcParameterBuffer);
 
+static void kShowDynamicMemoryInformation(const char *pcParameterBuffer);
+
+static void kTestSequentialAllocation(const char *pcParameterBuffer);
+
+static void kTestRandomAllocation(const char *pcParameterBuffer);
+
+static void kRandomAllocationTask(const char *pcParameterBuffer);
+
+
 #endif //CRAFTING_CONSOLESHELL_H
