@@ -12,6 +12,7 @@
 #include "Task.h"
 #include "Synchronization.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
 
 
 // 커맨드 테이블 정의
@@ -38,7 +39,9 @@ SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
         {"dynamicmeminfo", "Show Dynamic Memory Information",                             kShowDynamicMemoryInformation},
         {"testseqalloc",   "Test Sequential Allocation & Free",                           kTestSequentialAllocation},
         {"testranalloc",   "Test Random Allocation & Free",                               kTestRandomAllocation},
-
+        {"hddinfo",        "Show HDD Information",                                        kShowHDDInformation},
+        {"readsector",     "Read HDD Sector ex)readsector 0(LBA) 10(count)",              kReadSector},
+        {"writesector",    "Write HDD Sector ex)writesector 0(LBA) 10(count)",            kWriteSector},
 };
 
 //======================================================================================================================
@@ -156,35 +159,206 @@ void kExecuteCommand(const char *pcCommandBuffer) {
     }
 }
 
-// 파라미터 자료구조를 초기화
+/// 파라미터 자료구조를 초기화
 void kInitializeParameter(PARAMETER_LIST *pstList, const char *pcParameter) {
     pstList->pcBuffer = pcParameter;
     pstList->iLength = kStrLen(pcParameter);
     pstList->iCurrentPosition = 0;
 }
 
-// 공백으로 구분된 파라미터의 내용과 길이를 반환
+/// 공백으로 구분된 파라미터의 내용과 길이를 반환
 int kGetNextParameter(PARAMETER_LIST *pstList, char *pcParameter) {
     int i;
     int iLength;
 
-    // 더 이상 파리미터가 없으면 나감
+    /// 더 이상 파리미터가 없으면 나감
     if (pstList->iLength <= pstList->iCurrentPosition) { return 0; }
 
-    // 버퍼의 길이만큼 이동하면서 공백을 검색
+    /// 버퍼의 길이만큼 이동하면서 공백을 검색
     for (i = pstList->iCurrentPosition; i < pstList->iLength; i++) {
         if (pstList->pcBuffer[i] == ' ') { break; }
     }
 
-    // 파라미터를 복사하고 길이를 반환
+    /// 파라미터를 복사하고 길이를 반환
     kMemCpy(pcParameter, pstList->pcBuffer + pstList->iCurrentPosition, i);
     iLength = i - pstList->iCurrentPosition;
     pcParameter[iLength] = '\0';
 
-    // 파라미터의 위치 업데이트
+    /// 파라미터의 위치 업데이트
     pstList->iCurrentPosition += iLength + 1;
     return iLength;
 }
+
+
+/// 하드 디스크의 정보를 표시
+static void kShowHDDInformation(const char *pcParameterBuffer) {
+    HDD_INFORMATION stHDD;
+    char vcBuffer[100];
+
+    /// 하드 디스크의 정보를 읽음
+    if (kReadHDDInformation(TRUE, TRUE, &stHDD) == FALSE) {
+        kPrintf("HDD Information Read Fail\n");
+        return;
+    }
+
+    kPrintf("================ Primary Master HDD Information =========================");
+
+    /// 모델 번호 시작
+    kMemCpy(vcBuffer, stHDD.vwModelNumber, sizeof(stHDD.vwModelNumber));
+    vcBuffer[sizeof(stHDD.vwModelNumber) - 1] = '\0';
+    kPrintf("Model Numer:\t %s\n", vcBuffer);
+
+    /// 시리얼 번호 출력
+    kMemCpy(vcBuffer, stHDD.vwSerialNumber, sizeof(stHDD.vwSerialNumber));
+    vcBuffer[sizeof(stHDD.vwSerialNumber) - 1] = '\0';
+    kPrintf("Serial Numer:\t %s\n", vcBuffer);
+
+    /// 헤드, 실린더, 실린더 당 섹터 수를 출력
+    kPrintf("Head Count:\t %d\n", stHDD.wNumberOfHead);
+    kPrintf("Cylinder Count:\t %d\n", stHDD.wNumberOfCylinder);
+    kPrintf("Sector Count:\t %d\n", stHDD.wNumberOfSectorPerCylinder);
+    /// 총 섹터 수를 출력
+    kPrintf("Total Sector:\t %d Sector, %dMB\n",
+            stHDD.dwTotalSectors,
+            stHDD.dwTotalSectors / 2 / 1024);
+}
+
+/// 하드 디스크에서 파라미터로 넘어온 LBA 어드레스부터 섹터 수만큼 읽음
+static void kReadSector(const char *pcParameterBuffer) {
+    PARAMETER_LIST stList;
+    char vcLBA[50];
+    char vcSectorCount[50];
+    DWORD dwLBA;
+    int iSectorCount;
+    char *pcBuffer;
+    int i, j;
+    BYTE bData;
+    BOOL bExit = FALSE;
+
+    /// 파라미터 리스트를 초기화하여 LBA 어드레스부터 섹터 수 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    if ((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0)) {
+        kPrintf("ex) readsector 0(LBA) 10(count)\n");
+        return;
+    }
+
+    dwLBA = kAToI(vcLBA, 10);
+    iSectorCount = kAToI(vcSectorCount, 10);
+
+    /// 섹터 수만큼 메모리를 할당받아 읽기 수행
+    pcBuffer = kAllocateMemory(iSectorCount * 512);
+    if (kReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount) {
+        kPrintf("LBA [%d], [%d] Sector Read Success~!!", dwLBA, iSectorCount);
+        /// 데이터 버퍼의 내용을 출력
+        for (j = 0; j < iSectorCount; j++) {
+            for (i = 0; i < 512; i++) {
+                if (!((j == 0) && (i == 0)) && ((i % 256) == 0)) {
+                    kPrintf("\nPress any key to continue...('q' is exit) : ");
+                    if (kGetCh() == 'q') {
+                        bExit = TRUE;
+                        break;
+                    }
+                }
+
+                if ((i % 16) == 0) {
+                    kPrintf("\n[LBA %d, Offset:%d]\t| ", dwLBA + j, i);
+                }
+
+                /// 모두 두 자리로 표시하려고 16보다 작은 경우 0을 추가
+                bData = pcBuffer[j * 512 + i] & 0xFF;
+                if (bData < 16) {
+                    kPrintf("0");
+                }
+                kPrintf("%X ", bData);
+            }
+
+            if (bExit == TRUE) {
+                break;
+            }
+        }
+        kPrintf("\n");
+    } else {
+        kPrintf("Read Fail\n");
+    }
+
+    kFreeMemory(pcBuffer);
+}
+
+
+/// 하드 디스크에서 파라미터로 넘어온 LBA 어드레스부터 섹터 수만큼 씀
+static void kWriteSector(const char *pcParameterBuffer) {
+    PARAMETER_LIST stList;
+    char vcLBA[50];
+    char vcSectorCount[50];
+    DWORD dwLBA;
+    int iSectorCount;
+    char *pcBuffer;
+    int i, j;
+    BYTE bData;
+    BOOL bExit = FALSE;
+    static DWORD s_dwWriteCount = 0;
+
+    /// 파라미터 리스트를 초기화하여 LBA 어드레스부터 섹터 수 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    if ((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0)) {
+        kPrintf("ex) writesector 0(LBA) 10(count)\n");
+        return;
+    }
+    dwLBA = kAToI(vcLBA, 10);
+
+    iSectorCount = kAToI(vcSectorCount, 10);
+
+    s_dwWriteCount++;
+
+    /// 버퍼를 할당받아 데이터를 채움
+    /// 패턴은 4바이트의 LBA 어드레스와 4바이트의 쓰기가 수행된 횟수로 생성
+    pcBuffer = kAllocateMemory(iSectorCount * 512);
+    for (j = 0; j < iSectorCount; j++) {
+        for (i = 0; i < 512; i += 8) {
+
+            *(DWORD *) &(pcBuffer[j * 512 + i]) = dwLBA + j;
+            *(DWORD *) &(pcBuffer[j * 512 + i + 4]) = s_dwWriteCount;
+        }
+    }
+
+    if (kWriteHDDSector(TRUE, TRUE, dwLBA,
+                        iSectorCount, pcBuffer) == iSectorCount) {
+        kPrintf("Write Fail\n");
+        return;
+    }
+    kPrintf("LBA [%d], [%d] Sector Read Success~!!", dwLBA, iSectorCount);
+
+    /// 데이터 버퍼의 내용을 출력
+    for (j = 0; j < iSectorCount; j++) {
+        for (i = 0; i < 512; i++) {
+            if (!((j == 0) && (i == 0)) && ((i % 256) == 0)) {
+                kPrintf("\nPress any key to continue...('q' is exit) : ");
+                if (kGetCh() == 'q') {
+                    bExit = TRUE;
+                    break;
+                }
+            }
+
+            if ((i % 16) == 0) {
+                kPrintf("\n[LBA %d, Offset:%d]\t| ", dwLBA + j, i);
+            }
+
+            /// 모두 두 자리로 표시하려고 16보다 작은 경우 0을 추가
+            bData = pcBuffer[j * 512 + i] & 0xFF;
+            if (bData < 16) {
+                kPrintf("0");
+            }
+            kPrintf("%X ", bData);
+        }
+
+        if (bExit == TRUE) {
+            break;
+        }
+    }
+    kPrintf("\n");
+    kFreeMemory(pcBuffer);
+}
+
 
 //======================================================================================================================
 // 커맨드를 처리하는 함수
@@ -989,3 +1163,4 @@ static void kRandomAllocationTask(const char *pcParameterBuffer) {
                     0, 0, (QWORD) kRandomAllocationTask);
     }
 }
+

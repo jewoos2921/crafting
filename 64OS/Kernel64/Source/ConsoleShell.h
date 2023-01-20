@@ -98,4 +98,11 @@ static void kTestRandomAllocation(const char *pcParameterBuffer);
 static void kRandomAllocationTask(const char *pcParameterBuffer);
 
 
+static void kShowHDDInformation(const char *pcParameterBuffer);
+
+static void kReadSector(const char *pcParameterBuffer);
+
+static void kWriteSector(const char *pcParameterBuffer);
+
+
 #endif //CRAFTING_CONSOLESHELL_H
