@@ -11,6 +11,8 @@
 #include "Task.h"
 #include "PIT.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
+#include "FileSystem.h"
 
 
 #include "Page.h"
@@ -34,10 +36,12 @@ void kCopyKernel64ImageTo2Mbyte(void);
 int main() {
     int iCursorX, iCursorY;
 
+    /// 콘솔을 먼저 초기화한 후 다음 작업을 수행
     kInitializeConsole(0, 10);
     kPrintf("Switch to IA-32e Mode Success~!!\n");
     kPrintf("IA-32e C Language Kernel Start.............[Pass]\n");
     kPrintf("Initialize Console...................[Pass]\n");
+
 
     // 부팅 상황을 화면에 출력
     kGetCursor(&iCursorX, &iCursorY);
@@ -89,14 +93,37 @@ int main() {
     }
 
     kPrintf("PIC Controller And Interrupt Initialize....[   ]");
-    // PIC 컨트롤러 초기화 및 모든 인터럽트 활성화
+    /// PIC 컨트롤러 초기화 및 모든 인터럽트 활성화
     kInitializePIC();
     kMaskPICInterrupt(0);
     kEnableInterrupt();
     kSetCursor(45, iCursorY++);
     kPrintf("Pass\n");
 
-    // 유휴 태스크를 수행하고 셸을 시작
+
+    /// 하드 디스크를 초기화
+    kPrintf("HDD Initialize...................[     ]");
+    if (kInitializeHDD() == TRUE) {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
+    } else {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
+    }
+
+    /// 파일 시스템을 초기화
+    kPrintf("File System Initialize...................[     ]");
+    if (kInitializeFileSystem() == TRUE) {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
+    } else {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
+    }
+
+
+
+    /// 유휴 태스크를 수행하고 셸을 시작
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE,
                 0, 0, (QWORD) kIdleTask);
     kStartConsoleShell();
