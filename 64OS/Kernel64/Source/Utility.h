@@ -7,7 +7,12 @@
 
 #include <stdarg.h>
 #include "Types.h"
+// 매크로
+#define MAX(x, y)       (((x) < (y)) ? (x) : (y))
+#define MIN(x, y)       (((x) > (y)) ? (x) : (y))
 
+
+// 함수
 void kMemSet(void *pvDestination, BYTE bData, int iSize);
 
 int kMemCpy(void *pvDestination, const void *pvSource, int iSize);
