@@ -850,7 +850,7 @@ DWORD kWriteFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile) {
     }
 
     //=============================================================================================
-    /// 한 클러스터를 채우지 못하면 클러스터를 읽어서 임시 클러스터 버퍼로 복사
+    /// 파일 크기가 변했다면 루트 디렉터리에 있는 디렉터리 엔트리 정보를 갱신
     //=============================================================================================
     if (pstFileHandle->dwFileSize < pstFileHandle->dwCurrentOffset) {
         pstFileHandle->dwFileSize = pstFileHandle->dwCurrentOffset;
@@ -860,6 +860,334 @@ DWORD kWriteFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile) {
     /// 동기화 처리
     kUnlock(&(gs_stFileSystemManager.stMutex));
     return dwWriteCount;
+}
+
+/// 파일을 count만큼 0으로 채움
+BOOL kWriteZero(FILE *pstFile, DWORD dwCount) {
+    BYTE *pbBuffer;
+    DWORD dwRemainCount;
+    DWORD dwWriteCount;
+
+    /// 핸들이 NIL이면 실패
+    if (pstFile == NIL) {
+        return FALSE;
+    }
+
+    /// 0으로 채움
+    kMemSet(pbBuffer, 0, FILE_SYSTEM_CLUSTER_SIZE);
+    dwRemainCount = dwCount;
+
+    // 클러스터 단위로 반복해서 쓰기 수랭
+    while (dwRemainCount != 0) {
+        dwWriteCount = MIN(dwRemainCount, FILE_SYSTEM_CLUSTER_SIZE);
+        if (kWriteFile(pbBuffer, 1, dwWriteCount, pstFile) != dwWriteCount) {
+            kFreeMemory(pbBuffer);
+            return FALSE;
+        }
+        dwRemainCount -= dwWriteCount;
+    }
+
+    kFreeMemory(pbBuffer);
+    return TRUE;
+}
+
+/// 파일 포인터의 위치를 이동
+int kSeekFile(FILE *pstFile, int iOffset, int iOrigin) {
+    DWORD dwRealOffset;
+    DWORD dwClusterOffsetToMove;
+    DWORD dwCurrentClusterOffset;
+    DWORD dwLastClusterOffset;
+    DWORD dwMoveCount;
+    DWORD i;
+    DWORD dwStartClusterIndex;
+    DWORD dwPreviousClusterIndex;
+    DWORD dwCurrentClusterIndex;
+
+    FILE_HANDLE *pstFileHandle;
+
+    /// 핸들 타입이 파일이 아니면 실패
+    if ((pstFile == NIL) || (pstFile->bType != FILE_SYSTEM_TYPE_FILE)) {
+        return 0;
+    }
+    pstFileHandle = &(pstFile->stFileHandle);
+
+    //=============================================================================================
+    /// Origin & Offset을 조합해서 파일 시작을 기준으로 파일 포인터를 옮겨야 할 위치 계산
+    //=============================================================================================
+    /// 옵션에 따라서 실제 위치를 계산
+    /// 음수면 파일의 시작 반향으로 이동하며, 양수면 파일 의 끝 방향으로 이동
+    switch (iOrigin) {
+
+        /// 파일의 시작을 기준으로 이동
+        case FILE_SYSTEM_SEEK_SET:
+            if (iOffset <= 0) {
+                dwRealOffset = 0;
+            } else {
+                dwRealOffset = iOffset;
+            }
+            break;
+
+            /// 현재 위치를 기준으로 이동
+        case FILE_SYSTEM_SEEK_CUR:
+            /// 이동할 오프셋이 음수이고, 현재 파일 포인터의 값보다 크면
+            /// 더 이상 갈 수 없으므로 파일의 처음으로 이동
+
+            if ((iOffset < 0) && (pstFileHandle->dwCurrentOffset <= (DWORD) -iOffset)) {
+                dwRealOffset = 0;
+            } else {
+                dwRealOffset = pstFileHandle->dwCurrentOffset + iOffset;
+            }
+            break;
+
+            /// 파일의 끝부분을 기준으로 이동
+        case FILE_SYSTEM_SEEK_END:
+            if ((iOffset < 0) && (pstFileHandle->dwFileSize <= (DWORD) -iOffset)) {
+                dwRealOffset = 0;
+            } else {
+                dwRealOffset = pstFileHandle->dwFileSize + iOffset;
+            }
+            break;
+    }
+
+    //=============================================================================================
+    /// 파일을 구성하는 클러스터의 개수와 현재 파일 포인터의 위치를 고려하여
+    /// 옮겨질 파일 포인터가 위치한는 클러스터까지 클러스터 링크를 탐색
+    //=============================================================================================
+    /// 파일의 마지막 클러스터의 오프셋
+    dwLastClusterOffset = pstFileHandle->dwFileSize / FILE_SYSTEM_CLUSTER_SIZE;
+    /// 파일 포인터가 옮겨질 위치의 클러스터 오프셋
+    dwClusterOffsetToMove = dwRealOffset / FILE_SYSTEM_CLUSTER_SIZE;
+    /// 현재 파일 포인턱 있는 클러스터 오프셋
+    dwCurrentClusterOffset = pstFileHandle->dwCurrentOffset / FILE_SYSTEM_CLUSTER_SIZE;
+
+    /// 이동하는 클러스터의 위치가 파일의 마지막 클러스터 오프셋을 넘어서면
+    /// 현재 클러스터에서 마지막 파일까지 이동한 후 Write 함수를 이용해서 공백으로 나머지를 채움
+    if (dwLastClusterOffset < dwClusterOffsetToMove) {
+        dwMoveCount = dwLastClusterOffset - dwCurrentClusterOffset;
+        dwStartClusterIndex = pstFileHandle->dwCurrentClusterIndex;
+    }
+        /// 이동하는 클러스터의 위치가 현재 클러스터와 같거나 다음에 위치해 있다면
+        /// 현재 클러스터를 기준으로 차이만큼 이동하면 된다.
+    else if (dwCurrentClusterOffset <= dwClusterOffsetToMove) {
+        dwMoveCount = dwClusterOffsetToMove - dwCurrentClusterOffset;
+        dwStartClusterIndex = pstFileHandle->dwCurrentClusterIndex;
+    }
+        /// 이동하는 클러스터의 위치가 현재 클러스터 이전에 있다면, 첫 번째 클러스터부터 이동하면서 검색
+    else {
+        dwMoveCount = dwClusterOffsetToMove;
+        dwStartClusterIndex = pstFileHandle->dwStartClusterIndex;
+    }
+
+    /// 동기화 처리
+    kLock(&(gs_stFileSystemManager.stMutex));
+
+    /// 클러스터를 이동
+    dwCurrentClusterIndex = dwStartClusterIndex;
+    for (i = 0; i < dwMoveCount; i++) {
+        /// 값을 보관
+        dwPreviousClusterIndex = dwCurrentClusterIndex;
+
+        /// 다음 클러스터의 인덱스를 읽음
+        if (kGetClusterLinkData(dwPreviousClusterIndex, &dwCurrentClusterIndex) == FALSE) {
+            /// 동기화 처리
+            kUnlock(&(gs_stFileSystemManager.stMutex));
+            return -1;
+        }
+    }
+
+    /// 클러스터를 이동했으면 클러스터 정보를 갱신
+    if (dwMoveCount > 0) {
+        pstFileHandle->dwPreviouClusterIndex = dwPreviousClusterIndex;
+        pstFileHandle->dwCurrentClusterIndex = dwCurrentClusterIndex;
+    }
+        /// 첫 번째 클러스터로 이동하는 경우는 핸들의 클러스터 값을 시작 클러스터로 설정
+    else if (dwStartClusterIndex == pstFileHandle->dwStartClusterIndex) {
+        pstFileHandle->dwPreviouClusterIndex = pstFileHandle->dwStartClusterIndex;
+        pstFileHandle->dwCurrentClusterIndex = pstFileHandle->dwStartClusterIndex;
+    }
+
+    //=============================================================================================
+    /// 파일 포인터를 갱신하고 파일 오프셋이 파일의 크기를 넘었다면 나머지 부분을 0으로 채워서 파일의 크기를 늘림
+    //=============================================================================================
+    /// 실제 파일의 크기를 넘어서 파일 포인터가 이동했다면, 파일 끝에서부터 남은 크기만큼 0으로 채움
+    if (dwLastClusterOffset < dwClusterOffsetToMove) {
+        pstFileHandle->dwCurrentOffset = pstFileHandle->dwFileSize;
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+
+        /// 남은 크기만큼 0으로 채움
+        if (kWriteZero(pstFile, dwRealOffset - pstFileHandle->dwFileSize) == FALSE) {
+            return 0;
+        }
+    }
+    pstFileHandle->dwCurrentOffset = dwRealOffset;
+
+    /// 동기화 처리
+    kUnlock(&(gs_stFileSystemManager.stMutex));
+    return 0;
+}
+
+/// 파일을 닫음
+int kCloseFile(FILE *pstFile) {
+    /// 핸들 타입이 파일이 아니면 실패
+    if ((pstFile == NIL) || (pstFile->bType != FILE_SYSTEM_TYPE_FILE)) {
+        return -1;
+    }
+
+    /// 핸들을 반환
+    kFreeFileDirectoryHandle(pstFile);
+    return 0;
+}
+
+/// 핸들 풀을 검사하며 파일이 열려 있는지를 확인
+BOOL kIsFileOpended(const DIRECTORY_ENTRY *pstEntry) {
+    int i;
+    FILE *pstFile;
+
+    /// 핸들 풀의 시작 어드레스부터 끝까지 열린 파일만 검색
+    pstFile = gs_stFileSystemManager.pstHandlePool;
+    for (i = 0; i < FILE_SYSTEM_HANDLE_MAX_COUNT; i++) {
+        /// 파일 타입 중에서 시작 클러스터가 일치하면 반환
+        if ((pstFile[i].bType == FILE_SYSTEM_TYPE_FILE) &&
+            (pstFile[i].stFileHandle.dwStartClusterIndex == pstEntry->dwStartClusterIndex)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/// 파일을 삭제
+int kRemoveFile(const char *pcFileName) {
+    DIRECTORY_ENTRY stEntry;
+    int iDirectoryEntryOffset;
+    int iFileNameLength;
+
+    /// 파일 이름 검사
+    iFileNameLength = kStrLen(pcFileName);
+    if ((iFileNameLength > (sizeof(stEntry.vcFileName) - 1)) || (iFileNameLength == 0)) {
+        return NIL;
+    }
+
+    /// 동기화 처리
+    kLock(&(gs_stFileSystemManager.stMutex));
+
+    /// 파일이 존재하는지 확인
+    iDirectoryEntryOffset = kFindDirectoryEntry(pcFileName, &stEntry);
+    if (iDirectoryEntryOffset == -1) {
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return -1;
+    }
+
+    /// 다른 태스크에서 해당 파일을 열고 있는지 핸들 풀을 검색하여 확인 파일이 열려 있으면 삭제할 수 없음
+    if (kIsFileOpended(&stEntry) == TRUE) {
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return -1;
+    }
+
+    /// 파일을 구성하는 클러스터를 모두 해제
+    if (kFreeClusterUntilEnd(stEntry.dwStartClusterIndex) == FALSE) {
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return -1;
+    }
+
+    /// 디렉터리 엔트리를 빈 것으로 설정
+    kMemSet(&stEntry, 0, sizeof(stEntry));
+    if (kSetDirectoryEntryData(iDirectoryEntryOffset, &stEntry) == FALSE) {
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return -1;
+    }
+    /// 동기화 처리
+    kUnlock(&(gs_stFileSystemManager.stMutex));
+    return 0;
+
+}
+
+/// 디렉터리를 엶
+DIR *kOpenDirectory(const char *pcDirectoryName) {
+    DIR *pstDirectory;
+    DIRECTORY_ENTRY *pstDirectoryBuffer;
+
+    /// 동기화 처리
+    kLock(&(gs_stFileSystemManager.stMutex));
+
+    /// 루트 디렉터리밖에 없으므로 디렉터리 이름은 무시하고 핸들만 할당받아서 반환
+    pstDirectory = kAllocateFileDirectoryHandle();
+    if (pstDirectory == NIL) {
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return NIL;
+    }
+
+    /// 루트 디렉터리를 저장할 버퍼를 할당
+    pstDirectoryBuffer = (DIRECTORY_ENTRY *) kAllocateMemory(FILE_SYSTEM_CLUSTER_SIZE);
+//    if (pstDirectory == NIL) {
+    if (pstDirectoryBuffer == NIL) {
+        /// 실패하면 핸들을 반환해야 함
+        kFreeFileDirectoryHandle(pstDirectory);
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return NIL;
+    }
+
+    if (kReadCluster(0, (BYTE *) pstDirectoryBuffer) == FALSE) {
+        /// 실패하면 핸들과 메모리를 반환해야 함
+        kFreeFileDirectoryHandle(pstDirectory);
+        kFreeMemory(pstDirectoryBuffer);
+
+        /// 동기화 처리
+        kUnlock(&(gs_stFileSystemManager.stMutex));
+        return NIL;
+    }
+
+    /// 디렉터리 타입으로 설정하고 현재 디렉터리 엔트리 오프셋을 초기화
+    pstDirectory->bType = FILE_SYSTEM_TYPE_DIRECTORY;
+    pstDirectory->stDirectoryHandle.iCurrentOffset = 0;
+    pstDirectory->stDirectoryHandle.pstDirectoryBuffer = pstDirectoryBuffer;
+
+    /// 동기화 처리
+    kUnlock(&(gs_stFileSystemManager.stMutex));
+    return pstDirectory;
+}
+
+/// 디렉터리 엔트리를 반환하고 다음으로 이동
+struct kDirectoryEntryStruct *kReadDirectory(DIR *pstDirectory) {
+    DIRECTORY_HANDLE *pstDirectoryHandle;
+    DIRECTORY_ENTRY *pstEntry;
+
+    /// 핸들 타입이 디렉터리가 아니면 실패
+    if ((pstDirectory == NIL) || (pstDirectory->bType != FILE_SYSTEM_TYPE_DIRECTORY)) {
+        return NIL;
+    }
+    pstDirectoryHandle = &(pstDirectory->stDirectoryHandle);
+
+    /// 오프셋 범위가 클러스터에 존재하는 최댓값을 넘어서면 실패
+    if ((pstDirectoryHandle->iCurrentOffset < 0) ||
+        (pstDirectoryHandle->iCurrentOffset >= FILE_SYSTEM_MAX_DIRECTORY_ENTRY_COUNT)) {
+        return NIL;
+    }
+
+    /// 동기화 처리
+    kLock(&(gs_stFileSystemManager.stMutex));
+
+    /// 루트 디렉터리에 있는 최대 디렉터리 엔트리의 개수만큼 검색
+    pstEntry = pstDirectoryHandle->pstDirectoryBuffer;
+    while (pstDirectoryHandle->iCurrentOffset < FILE_SYSTEM_MAX_DIRECTORY_ENTRY_COUNT) {
+        /// 파일이 존재하면 해당 디렉터리 엔트리를 반환
+        if (pstEntry[pstDirectoryHandle->iCurrentOffset].dwStartClusterIndex != 0) {
+            /// 동기화 처리
+            kUnlock(&(gs_stFileSystemManager.stMutex));
+            return &(pstEntry[pstDirectoryHandle->iCurrentOffset++]);
+        }
+        pstDirectoryHandle->iCurrentOffset++;
+    }
+
+    /// 동기화 처리
+    kUnlock(&(gs_stFileSystemManager.stMutex));
+    return NIL;
 }
 
 /// 디렉터리 포인터를 디렉터리의 처음으로 이동
