@@ -10,6 +10,7 @@
 #include "Types.h"
 #include "Synchronization.h"
 #include "HardDisk.h"
+#include "CacheManager.h"
 
 
 /// MINT 파일 시스템 시그너처 (Signature)
@@ -210,6 +211,9 @@ typedef struct kFileSystemManagerStruct {
 
     /// 핸들 출의 어드레스
     FILE *pstHandlePool;
+
+    /// 캐시를 사용하는지 여부
+    BOOL bCacheEnable;
 } FILESYSTEM_MANAGER;
 
 #pragma pack(pop)
@@ -248,6 +252,27 @@ static BOOL kGetDirectoryEntryData(int iIndex, DIRECTORY_ENTRY *pstEntry);
 static int kFindDirectoryEntry(const char *pcFileName, DIRECTORY_ENTRY *pstEntry);
 
 void kGetFileSystemInformation(FILESYSTEM_MANAGER *pstManager);
+
+/// 캐시 관련 함수
+static BOOL kInternalReadClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalWriteClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static BOOL kInternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static CACHE_BUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex);
+
+BOOL kFlushFileSystemCache(void);
 
 ///  고수준 함수(High Level Function)
 FILE *kOpenFile(const char *pcFileName, const char *pcMode);

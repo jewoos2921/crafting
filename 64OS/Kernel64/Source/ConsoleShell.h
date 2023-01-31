@@ -122,4 +122,8 @@ static void kReadDataToFile(const char *pcParameterBuffer);
 
 static void kTestFileIO(const char *pcParameterBuffer);
 
+static void kFlushCache(const char *pcParameterBuffer);
+
+static void kTestPerformance(const char *pcParameterBuffer);
+
 #endif //CRAFTING_CONSOLESHELL_H
