@@ -43,7 +43,7 @@ int main() {
     kPrintf("Initialize Console...................[Pass]\n");
 
 
-    // 부팅 상황을 화면에 출력
+    /// 부팅 상황을 화면에 출력
     kGetCursor(&iCursorX, &iCursorY);
     kPrintf("GDT Initialize And Switch For IA-32e Mode...[   ]");
     kInitializeGDTTableAndTSS();
@@ -71,17 +71,18 @@ int main() {
     iCursorY++;
     kInitializeScheduler();
 
-    // 동적 메모리 초기화
+    /// 동적 메모리 초기화
     kPrintf("Dynamic Memory Initialzie................[Pass]\n");
     iCursorY++;
     kInitializeDynamicMemory();
 
 
-    // 1ms당 한 번씩 인터럽트가 발생하도록 설정
+    /// 1ms당 한 번씩 인터럽트가 발생하도록 설정
     kInitializePIT(MSTOCOUNT(1), 1);
 
     kPrintf("Keyboard Activate And Queue Initialize......[    ]");
-    // 키보드를 활성화
+
+    /// 키보드를 활성화
     if (kInitializeKeyboard() == TRUE) {
         kSetCursor(45, iCursorY++);
         kPrintf("Pass\n");
@@ -124,7 +125,7 @@ int main() {
 
 
     /// 유휴 태스크를 수행하고 셸을 시작
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE,
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE | TASK_FLAGS_SYSTEM | TASK_FLAGS_THREAD,
                 0, 0, (QWORD) kIdleTask);
     kStartConsoleShell();
 }
