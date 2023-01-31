@@ -12,6 +12,7 @@
 #include "PIT.h"
 #include "DynamicMemory.h"
 #include "HardDisk.h"
+#include "SerialPort.h"
 #include "FileSystem.h"
 
 
@@ -122,7 +123,9 @@ int main() {
         kPrintf("Fail\n");
     }
 
-
+    kPrintf("Serial Port Initialize...................[Pass]\n");
+    iCursorY++;
+    kInitializeSerialPort();
 
     /// 유휴 태스크를 수행하고 셸을 시작
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE | TASK_FLAGS_SYSTEM | TASK_FLAGS_THREAD,
