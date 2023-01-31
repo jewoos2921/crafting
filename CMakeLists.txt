@@ -40,8 +40,8 @@ add_executable(
         small/codegen.c
         small/table.c
         small/getSource.c
-
-        small/main.c small/compile.c)
+        small/main.c
+        small/compile.c)
 
 add_executable(
         64OS
@@ -66,7 +66,15 @@ add_executable(
         64OS/Kernel64/Source/List.c
         64OS/Kernel64/Source/Synchronization.c
         64OS/Kernel64/Source/DynamicMemory.c
+        64OS/Utility/Files/Hashing.c
+        64OS/Kernel64/Source/HardDisk.c
+        64OS/Kernel64/Source/FileSystem.c
+        64OS/Utility/Files/HashMain.c
+        64OS/Utility/Files/HashPage.c
+        64OS/Utility/Files/Hash.c
+        64OS/Kernel64/Source/CacheManager.c
+        64OS/Kernel64/Source/RAMDisk.c
+        64OS/Kernel64/Source/SerialPort.c
 
-
-        64OS/Utility/Files/Hashing.c 64OS/Kernel64/Source/HardDisk.c 64OS/Kernel64/Source/FileSystem.c 64OS/Utility/Files/HashMain.c 64OS/Utility/Files/HashPage.c 64OS/Utility/Files/Hash.c 64OS/Kernel64/Source/CacheManager.c 64OS/Kernel64/Source/RAMDisk.c 64OS/Kernel64/Source/SerialPort.c)
+)
 
