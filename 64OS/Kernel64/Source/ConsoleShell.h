@@ -127,6 +127,6 @@ static void kFlushCache(const char *pcParameterBuffer);
 static void kTestPerformance(const char *pcParameterBuffer);
 
 static void kDownloadFile(const char *pcParameterBuffer);
-
+static void kShowMPConfigurationTable(const char *pcParameterBuffer);
 
 #endif //CRAFTING_CONSOLESHELL_H
