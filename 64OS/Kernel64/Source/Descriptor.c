@@ -14,23 +14,23 @@ void kPrintString(int iX, int iY, const char *pcString);
 //================================================================================================
 /// GDT 및 TSS
 //================================================================================================
-// GDT 테이블을 초기화
+/// GDT 테이블을 초기화
 void kInitializeGDTTableAndTSS(void) {
     GDTR *pstGDTR;
     GDTENTRY8 *pstEntry;
     TSSSEGMENT *pstTSS;
     int i;
 
-    // GDTR 설정
+    /// GDTR 설정
     pstGDTR = (GDTR *) GDTR_STAR_ADDRESS;
     pstEntry = (GDTENTRY8 *) (GDTR_STAR_ADDRESS + sizeof(GDTR));
     pstGDTR->wLimit = GDT_TABLE_SIZE - 1;
     pstGDTR->qwBaseAddress = (QWORD) pstEntry;
 
-    // TSS 세그먼트 영역 설정, GDT 테이블의 뒤쪽 위치
+    /// TSS 세그먼트 영역 설정, GDT 테이블의 뒤쪽 위치
     pstTSS = (TSSSEGMENT *) ((QWORD) pstEntry + GDT_TABLE_SIZE);
 
-    // NULL, 64bit Code/Data, TSS를 위해 총 3 + 16 개의 세그먼트를 생성
+    /// NULL, 64bit Code/Data, TSS를 위해 총 3 + 16 개의 세그먼트를 생성
     kSetGDTEntry8(&(pstEntry[0]), 0, 0, 0, 0, 0);
     kSetGDTEntry8(&(pstEntry[1]), 0, 0xFFFFF, GDT_FLAGS_UPPER_CODE,
                   GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE);
@@ -54,8 +54,8 @@ void kInitializeGDTTableAndTSS(void) {
     kInitializeTSSSegment(pstTSS);
 }
 
-// 8 바이트 크기의 GDT엔트리에 값을 설정,
-// 코드와 데이터 세그먼트 디스크립터를 설정하는데 사용
+/// 8 바이트 크기의 GDT엔트리에 값을 설정,
+/// 코드와 데이터 세그먼트 디스크립터를 설정하는데 사용
 void kSetGDTEntry8(GDTENTRY8 *pstEntry, DWORD dwBaseAddress, DWORD dwLimit,
                    BYTE bUpperFlags, BYTE bLowerFlags, BYTE bType) {
     pstEntry->wLowerLimit = dwLimit & 0xFFFF;
@@ -66,8 +66,8 @@ void kSetGDTEntry8(GDTENTRY8 *pstEntry, DWORD dwBaseAddress, DWORD dwLimit,
     pstEntry->bUpperBaseAddress2 = (dwBaseAddress >> 24) & 0xFF;
 }
 
-// 16 바이트 크기의 GDT엔트리에 값을 설정,
-// TSS 세그먼트 디스크립터를 설정하는데 사용
+/// 16 바이트 크기의 GDT엔트리에 값을 설정,
+/// TSS 세그먼트 디스크립터를 설정하는데 사용
 void kSetGDTEntry16(GDTENTRY16 *pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
                     BYTE bUpperFlags, BYTE bLowerFlags, BYTE bType) {
     pstEntry->wLowerLimit = dwLimit & 0xFFFF;
@@ -90,7 +90,7 @@ void kInitializeTSSSegment(TSSSEGMENT *pstTSS) {
         /// IST의 뒤에서부터 잘라서 할당함. (주의, IST는 16바이트 단위로 정렬해야 함)
         pstTSS->qwIST[0] = IST_START_ADDRESS + IST_SIZE - (IST_SIZE / MAX_PROCESSOR_COUNT * i);
 
-        // IO Map의 기준주소를 TSS의 limit 필드 값보다 크게 설정함으로써 IO Map을 사용하지 않도록 함
+        /// IO Map의 기준주소를 TSS의 limit 필드 값보다 크게 설정함으로써 IO Map을 사용하지 않도록 함
         pstTSS->wIOMapBaseAddress = 0xFFFF;
 
         /// 다음 엔트리로 이동
