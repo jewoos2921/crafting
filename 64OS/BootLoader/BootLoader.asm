@@ -26,7 +26,7 @@ START:
     mov es, ax              ; ES 세그먼트 레지스터에 설정
 
     ; 스택을 0x0000:0000~0x0000:FFFF 영역에 64KB 크기로 생성
-    mov ax, 0x0000          ;
-    mov ss, ax              ;
-    mov sp, 0xFFFE          ;
-    mov bp, 0xFFFE          ;
+    mov ax, 0x0000          ; 스택 세그먼트의 시작 어드레스(0x0000)를 세그먼트 레지스터 값으로 변환
+    mov ss, ax              ; SS 세그먼트 레지스터에 설정
+    mov sp, 0xFFFE          ; SP 레지스터의 어드레스를 0xFFFE로 설정
+    mov bp, 0xFFFE          ; BP 레지스터의 어드레스를 0xFFFE로 설정
