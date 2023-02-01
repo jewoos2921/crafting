@@ -16,15 +16,25 @@ BOOL kIsMemoryEnough(void);
 
 void kCopyKernel64ImageTo2Mbyte(void);
 
+/// Bootstrap Processor 여부가 저장된 어드레스, 부트 로더 영역의 앞쪽에 위치
+#define BOOTSTRAP_PROCESSOR_FLAG_ADDRESS            0x7C09
+
 int main() {
 
     DWORD i;
     DWORD dwEAX, dwEBX, dwECX, dwEDX;
-
     char vcVendorString[13] = {0,};
 
-    kPrintString(0, 3, "C Language Kernel Started~!!!");
+    /// Application Processor이면 아래의 코드를 생략하고 바로 64비트 모드로 전환
+    if (*((BYTE *) BOOTSTRAP_PROCESSOR_FLAG_ADDRESS) == 0) {
+        kSwitchAndExecute64bitKernel();
+        while (1);
+    }
+    //==============================================================================
+    /// BSP만 수행하는 코드
+    //==============================================================================
 
+    kPrintString(0, 3, "C Language Kernel Started~!!!");
 
     // 최소 메모리 크기를 만족하는 지 검사
     kPrintString(0, 4, "Minimum Memory Size Check....................[      ]");
