@@ -34,26 +34,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #ifndef CRAFTING_ASSEMBLYUTILITY_H
 #define CRAFTING_ASSEMBLYUTILITY_H
 
@@ -98,5 +78,7 @@ void kClearTS(void);
 WORD kInPortWord(WORD wPort);
 
 void kOutPortWord(WORD wPort, WORD wData);
+
+void kEnableGlobalLocalAPIC(void);
 
 #endif //CRAFTING_ASSEMBLYUTILITY_H
