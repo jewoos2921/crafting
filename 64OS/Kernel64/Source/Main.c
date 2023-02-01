@@ -14,7 +14,7 @@
 #include "HardDisk.h"
 #include "SerialPort.h"
 #include "FileSystem.h"
-
+#include "MultiProcessor.h"
 
 #include "Page.h"
 
@@ -33,9 +33,19 @@ BOOL kIsMemoryEnough(void);
 
 void kCopyKernel64ImageTo2Mbyte(void);
 
+/// Application Processor를 위한 Main함수
+void MainForApplicationProcessor(void);
 
+/// Bootstrap Processor 용 C 언어 커널 엔트리 포인트
+///             아래 함수는 C 언어 커널의 시작 부분
 int main() {
     int iCursorX, iCursorY;
+
+    /// 부트로더에 있는 BSP 플래그를 읽어서 Application Processor이면
+    /// 해당 코어용 초기화 함수로 이동
+    if (*((BYTE *) BOOTSTRAP_PROCESSOR_FLAG_ADDRESS) == 0) {
+        MainForApplicationProcessor();
+    }
 
     /// 콘솔을 먼저 초기화한 후 다음 작업을 수행
     kInitializeConsole(0, 10);
@@ -130,9 +140,36 @@ int main() {
     /// 유휴 태스크를 수행하고 셸을 시작
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE | TASK_FLAGS_SYSTEM | TASK_FLAGS_THREAD,
                 0, 0, (QWORD) kIdleTask);
+
     kStartConsoleShell();
 }
 
+/// Application Processor용 C 언어 커널 엔트리 포인트
+///         대부분의 자료구조는 Bootstrap Processor가 생성해 놓았으므로 코어에 설정하는 작업만 함
+void MainForApplicationProcessor(void) {
+    QWORD qwTickCount;
+
+    /// GDT 테이블을 설정
+    kLoadGDTR(GDTR_STAR_ADDRESS);
+
+    /// TSS 디스크립터 설정. TSS 세그먼트와 디스크립터를  Application Processor의 수만큼
+    /// 생성했으므로, APIC ID를 이용하여 TSS 디스크립터를 할당
+    kLoadTR(GDT_TSS_SEGMENT + (kGetAPICID() * sizeof(GDTENTRY16)));
+
+    /// IDT 테이블을 설정
+    kLoadIDTR(IDTR_START_ADDRESS);
+
+    /// 1초마다 한 번씩 메시지를 출력
+    qwTickCount = kGetTickCount();
+    while (1) {
+        if (kGetTickCount() - qwTickCount > 1000) {
+            qwTickCount - kGetTickCount();
+
+            kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
+                    kGetAPICID());
+        }
+    }
+}
 
 
 //
@@ -312,9 +349,9 @@ int main() {
 //    }
 //
 //
-////    kSwitchAndExecute64bitKernel();
-////
-////    while (1);
+//   kSwitchAndExecute64bitKernel();
+//
+//    while (1);
 //}
 
 // 문자열 출력 함수
