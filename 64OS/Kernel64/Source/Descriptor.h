@@ -48,11 +48,13 @@
 #define GDTR_STAR_ADDRESS                       0x142000
 // 8바이트 엔트리의 개수, 널 디스크립터/커널 코드/커널 데이터
 #define GDT_MAX_ENTRY_8_COUNT                   3
-// 16바이트 엔트리의 개수, TSS
-#define GDT_MAX_ENTRY_16_COUNT                  1
+// 16바이트 엔트리의 개수, 즉 TSS는 프로세서 또는 코어의 최대 개수만큼 생성
+#define GDT_MAX_ENTRY_16_COUNT                  (MAX_PROCESSOR_COUNT)
 // GDT 테이블의 크기
 #define GDT_TABLE_SIZE                       ((sizeof(GDTENTRY8) * GDT_MAX_ENTRY_8_COUNT) + (sizeof(GDTENTRY16) * GDT_MAX_ENTRY_16_COUNT))
-#define TSS_SEGMENT_SIZE                     (sizeof(TSSSEGMENT))
+/// TSS 세그먼트의 전체 크기
+#define TSS_SEGMENT_SIZE                     (sizeof(TSSSEGMENT) *  MAX_PROCESSOR_COUNT)
+
 
 //======================================================================================================================
 // IDT
