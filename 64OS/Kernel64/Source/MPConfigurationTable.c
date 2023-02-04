@@ -384,6 +384,7 @@ void kPrintMPConfigurationTable(void) {
                 /// 로컬 인터럽트 지정 엔트리의 크기만큼 어드레스를 증가시켜 다음 엔트리로 이동
                 qwBaseEntryAddress += sizeof(LOCAL_INTERRUPT_ASSIGNMENT_ENTRY);
                 break;
+
             default:
                 kPrintf("Unknown Entry Type. %d\n", bEntryType);
                 break;
@@ -408,4 +409,101 @@ int iGetProcessorCount(void) {
         return 1;
     }
     return gs_stMPConfigurationManager.iProcessorCount;
+}
+
+/// ISA 버스가 연결된 I/O APIC 엔트리를 검색
+/// kAnalysisMPConfigurationTable() 함수를 먼저 호출한 뒤에 사용해야 함
+IO_APIC_ENTRY *kFindIOAPICEntryForISA(void) {
+    MP_CONFIGURATION_MANAGER *pstMPManager;
+    MP_CONFIGURATION_TABLE_HEADER *pstMPHeader;
+    IO_INTERRUPT_ASSIGNMENT_ENTRY *pstIOAssignmentEntry;
+    IO_APIC_ENTRY *pstIOAPICEntry;
+    BYTE bEntryType;
+    QWORD qwEntryAddress;
+    BOOL bFind = FALSE;
+    int i;
+
+
+    /// MP 설전 테이블 헤더의 시작 어드레스와 엔트리의 시작 어드레스를 저장
+    pstMPHeader = gs_stMPConfigurationManager.pstMPConfigurationTableHeader;
+    qwEntryAddress = gs_stMPConfigurationManager.qwBaseEntryStartAddress;
+
+    //==============================================================================================
+    /// ISA 버스와 관련된 I/O 인터럽트 지정 엔트리를 검색
+    //==============================================================================================
+    /// 모든 엔트리를 돌면서 ISA 버스와 관련된 I/O 인터럽트 지정 엔트리만 검색
+    for (i = 0; (i < pstMPHeader->wEntryCount) && (bFind == FALSE); i++) {
+        bEntryType = *(BYTE *) qwEntryAddress;
+        switch (bEntryType) {
+            /// 프로세스 엔트리는 무시
+            case MP_ENTRY_TYPE_PROCESSOR:
+                qwEntryAddress += sizeof(PROCESSOR_ENTRY);
+                break;
+
+                /// 버스 엔트리, I/O APIC 엔트리, 로컬 인터럽트 지정 엔트리는 무시
+            case MP_ENTRY_TYPE_BUS:
+            case MP_ENTRY_TYPE_IO_APIC:
+            case MP_ENTRY_TYPE_LOCAL_INTERRUPT_ASSIGNMENT:
+                qwEntryAddress += 8;
+                break;
+
+
+                /// IO 인터럽트 지정 엔트리이면, ISA 버스에 관련된 엔트리인지 확인
+            case MP_ENTRY_TYPE_IO_INTERRUPT_ASSIGNMENT:
+                pstIOAssignmentEntry = (IO_INTERRUPT_ASSIGNMENT_ENTRY *) qwEntryAddress;
+                /// MP Configuration Manager 자료구조에 저장된 ISA 버스와 ID와 비교
+                if (pstIOAssignmentEntry->bSourceBUSID == gs_stMPConfigurationManager.bISABusID) {
+                    bFind = TRUE;
+                }
+                qwEntryAddress += sizeof(IO_INTERRUPT_ASSIGNMENT_ENTRY);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /// 여기까지 왔는데 못 찾았으면 NIL을 반환
+    if (bFind == FALSE) {
+        return NIL;
+    }
+
+    //==========================================================================================
+    /// ISA 버스와 관련된 I/O APIC를 검색하여 I/O APIC의 엔트리를 반환
+    //==========================================================================================
+    /// 다시 엔트리를 돌면서 IO 인터럽트 지정 엔트리에 저장된 I/O APIC의 ID와 일치하는 엔트리를 검색
+    qwEntryAddress = gs_stMPConfigurationManager.qwBaseEntryStartAddress;
+    for (i = 0; i < pstMPHeader->wEntryCount; i++) {
+        bEntryType = *(BYTE *) qwEntryAddress;
+        switch (bEntryType) {
+            /// 프로세스 엔트리는 무시
+            case MP_ENTRY_TYPE_PROCESSOR:
+                qwEntryAddress += sizeof(PROCESSOR_ENTRY);
+                break;
+
+                /// 버스 엔트리, IO 인터럽트 지정 엔트리, 로컬 인터럽트 지정 엔트리는 무시
+            case MP_ENTRY_TYPE_BUS:
+            case MP_ENTRY_TYPE_IO_INTERRUPT_ASSIGNMENT:
+            case MP_ENTRY_TYPE_LOCAL_INTERRUPT_ASSIGNMENT:
+                qwEntryAddress += 8;
+                break;
+
+
+                /// I/O APIC 엔트리이면, ISA 버스에 관련된 엔트리인지 확인
+            case MP_ENTRY_TYPE_IO_APIC:
+                pstIOAPICEntry = (IO_APIC_ENTRY *) qwEntryAddress;
+
+                if (pstIOAPICEntry->bIOAPICID == pstIOAssignmentEntry->bDestinationIOAPICID) {
+                    return pstIOAPICEntry;
+                }
+                qwEntryAddress += sizeof(IO_INTERRUPT_ASSIGNMENT_ENTRY);
+                break;
+
+
+            default:
+                break;
+        }
+    }
+
+    return NIL;
 }
