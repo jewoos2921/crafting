@@ -83,3 +83,4 @@ void kInitializeLocalVectorTable(void) {
     ///  LVT 온도 센서 레지스터(0xFEE00330)에 저장
     *(DWORD *) (qwLocalAPICBaseAddress + APIC_REGISTER_THERMAL_SENSOR) |= APIC_INTERRUPT_MASK;
 }
+
