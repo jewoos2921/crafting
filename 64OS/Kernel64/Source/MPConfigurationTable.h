@@ -256,4 +256,6 @@ void kPrintMPConfigurationTable(void);
 
 int iGetProcessorCount(void);
 
+IO_APIC_ENTRY *kFindIOAPICEntryForISA(void);
+
 #endif //CRAFTING_MPCONFIGURATIONTABLE_H

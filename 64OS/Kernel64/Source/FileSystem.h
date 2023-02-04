@@ -72,9 +72,9 @@ typedef int (*fWrtieHDDSector)(BOOL bPrimary, BOOL bMaster, DWORD dwLBA,
 #define closedir    kCloseDirectory
 
 /// MINT 파일 시스템 매크로를 표준 입출력의 매크로를 재정의
-#define SEEK_SET        FILE_SYSTEM_SEEK_SET
-#define SEEK_CUR        FILE_SYSTEM_SEEK_CUR
-#define SEEK_END        FILE_SYSTEM_SEEK_END
+#define SEEK_SET        FILE_SYSTEM_SEEK_SET            /// 파일의 시작을 기준으로 함
+#define SEEK_CUR        FILE_SYSTEM_SEEK_CUR            /// 현재 파일 포인터의 위치를 기준으로 함
+#define SEEK_END        FILE_SYSTEM_SEEK_END            /// 파일의 끝을 기준으로 함
 
 /// MINT 파일 시스템 타입과 필드를 표준 입출력의 타입으로 재정의
 #define size_t          DWORD
