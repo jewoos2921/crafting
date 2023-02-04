@@ -18,49 +18,52 @@
 #include "MPConfigurationTable.h"
 #include "LocalAPIC.h"
 #include "MultiProcessor.h"
-
+#include "IOAPIC.h"
+#include "PIC.h"
 
 // 커맨드 테이블 정의
 SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
-        {"help",            "Show Help",                                                   kHelp},
-        {"cls",             "Clear Screen",                                                kCls},
-        {"totalram",        "Show Total RAM Size",                                         kShowTotalRAMSize},
-        {"strtod",          "String to Decial/Hex Convert",                                kStringToDecimalHexTest},
-        {"shutdown",        "Shutdown And Reboot OS",                                      kShutdown},
-        {"settimer",        "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", kSetTimer},
-        {"wait",            "Wait ms Using PIT, ex)wait 100(ms)",                          kWaitUsingPIT},
-        {"rdtsc",           "Read Time Stamp Counter",                                     kReadTimeStampCounter},
-        {"cpuspeed",        "Measure Processor Speed",                                     kMeasureProcessorSpeed},
-        {"date",            "Show Date And Time",                                          kShowDateAndTime},
-        {"createtask",      "Create Task",                                                 kCreateTestTask},
-        {"changepriority",  "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",   kChangeTaskPriority},
-        {"tasklist",        "Show Task List",                                              kShowTaskList},
-        {"killtask",        "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",         kKillTask},
-        {"cpuload",         "Show Processor Load",                                         kCPULoad},
-        {"testmutex",       "Test Mutex Function",                                         kTestMutex},
-        {"testthread",      "Test Thread And Process Function",                            kTestThread},
-        {"showmatrix",      "Show Matrix Screen",                                          kShowMatrix},
-        {"testpie",         "Test PIE Calculation",                                        kTestPIE},
-        {"dynamicmeminfo",  "Show Dynamic Memory Information",                             kShowDynamicMemoryInformation},
-        {"testseqalloc",    "Test Sequential Allocation & Free",                           kTestSequentialAllocation},
-        {"testranalloc",    "Test Random Allocation & Free",                               kTestRandomAllocation},
-        {"hddinfo",         "Show HDD Information",                                        kShowHDDInformation},
-        {"readsector",      "Read HDD Sector ex)readsector 0(LBA) 10(count)",              kReadSector},
-        {"writesector",     "Write HDD Sector ex)writesector 0(LBA) 10(count)",            kWriteSector},
-        {"mounthdd",        "Mount HDD",                                                   kMountHDD},
-        {"formathdd",       "Format HDD",                                                  kFormatHDD},
-        {"filesysteminfo",  "Show File System Information",                                kShowFileSystemInformation},
-        {"createfile",      "Create File, ex)createfile a.txt",                            kCreateFileInRootDirectory},
-        {"deletefile",      "Delete File, ex)deletefile a.txt",                            kDeleteFileInRootDirectory},
-        {"dir",             "Show Directory",                                              kShowRootDirectory},
-        {"writefile",       "Write Data To File, ex) writefile a.txt",                     kWriteDataToFile},
-        {"readfile",        "Read Data To File, ex) readfile a.txt",                       kReadDataToFile},
-        {"testfileio",      "Test File I/O Function",                                      kTestFileIO},
-        {"testperformance", "Test File Read/WritePerformance",                             kTestPerformance},
-        {"flush",           "Flush File System Cache",                                     kFlushCache},
-        {"download",        "Download Data From Serial, ex) download a.txt",               kDownloadFile},
-        {"showmpinfo",      "Show MP Configuration Table Information",                     kShowMPConfigurationTable},
-        {"startap",         "Start Application Processor",                                 kStartApplicationProcessor},
+        {"help",             "Show Help",                                                   kHelp},
+        {"cls",              "Clear Screen",                                                kCls},
+        {"totalram",         "Show Total RAM Size",                                         kShowTotalRAMSize},
+        {"strtod",           "String to Decial/Hex Convert",                                kStringToDecimalHexTest},
+        {"shutdown",         "Shutdown And Reboot OS",                                      kShutdown},
+        {"settimer",         "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", kSetTimer},
+        {"wait",             "Wait ms Using PIT, ex)wait 100(ms)",                          kWaitUsingPIT},
+        {"rdtsc",            "Read Time Stamp Counter",                                     kReadTimeStampCounter},
+        {"cpuspeed",         "Measure Processor Speed",                                     kMeasureProcessorSpeed},
+        {"date",             "Show Date And Time",                                          kShowDateAndTime},
+        {"createtask",       "Create Task",                                                 kCreateTestTask},
+        {"changepriority",   "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",   kChangeTaskPriority},
+        {"tasklist",         "Show Task List",                                              kShowTaskList},
+        {"killtask",         "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",         kKillTask},
+        {"cpuload",          "Show Processor Load",                                         kCPULoad},
+        {"testmutex",        "Test Mutex Function",                                         kTestMutex},
+        {"testthread",       "Test Thread And Process Function",                            kTestThread},
+        {"showmatrix",       "Show Matrix Screen",                                          kShowMatrix},
+        {"testpie",          "Test PIE Calculation",                                        kTestPIE},
+        {"dynamicmeminfo",   "Show Dynamic Memory Information",                             kShowDynamicMemoryInformation},
+        {"testseqalloc",     "Test Sequential Allocation & Free",                           kTestSequentialAllocation},
+        {"testranalloc",     "Test Random Allocation & Free",                               kTestRandomAllocation},
+        {"hddinfo",          "Show HDD Information",                                        kShowHDDInformation},
+        {"readsector",       "Read HDD Sector ex)readsector 0(LBA) 10(count)",              kReadSector},
+        {"writesector",      "Write HDD Sector ex)writesector 0(LBA) 10(count)",            kWriteSector},
+        {"mounthdd",         "Mount HDD",                                                   kMountHDD},
+        {"formathdd",        "Format HDD",                                                  kFormatHDD},
+        {"filesysteminfo",   "Show File System Information",                                kShowFileSystemInformation},
+        {"createfile",       "Create File, ex)createfile a.txt",                            kCreateFileInRootDirectory},
+        {"deletefile",       "Delete File, ex)deletefile a.txt",                            kDeleteFileInRootDirectory},
+        {"dir",              "Show Directory",                                              kShowRootDirectory},
+        {"writefile",        "Write Data To File, ex) writefile a.txt",                     kWriteDataToFile},
+        {"readfile",         "Read Data To File, ex) readfile a.txt",                       kReadDataToFile},
+        {"testfileio",       "Test File I/O Function",                                      kTestFileIO},
+        {"testperformance",  "Test File Read/WritePerformance",                             kTestPerformance},
+        {"flush",            "Flush File System Cache",                                     kFlushCache},
+        {"download",         "Download Data From Serial, ex) download a.txt",               kDownloadFile},
+        {"showmpinfo",       "Show MP Configuration Table Information",                     kShowMPConfigurationTable},
+        {"startap",          "Start Application Processor",                                 kStartApplicationProcessor},
+        {"startsymmetricio", "Start Symmetric I/O Mode",                                    kStartSymmetricIOMode},
+        {"showirqintinmap",  "Show IRQ->INITIN Mapping Table",                              kShowIRQINTINMappingTable},
 };
 
 
@@ -1988,4 +1991,65 @@ static void kStartApplicationProcessor(const char *pcParameterBuffer) {
     kPrintf("Bootstrap Processor[APIC ID: %d] Start Application Processor\n",
             kGetAPICID());
 
+}
+
+/// 대칭 I/O 모드로 전환
+static void kStartSymmetricIOMode(const char *pcParameterBuffer) {
+    MP_CONFIGURATION_MANAGER *pstMPManager;
+    BOOL bInterruptFlag;
+
+    /// MP 설정 테이블을 분석
+    if (kAnalysisMPConfigurationTable() == FALSE) {
+        kPrintf("Analyze MP Configuration Table Fail\n");
+        return;
+    }
+
+
+    /// MP 설정 매니저를 찾아서 PIC 모드인가 확인
+    pstMPManager = kGetMPConfigurationManager();
+    if (pstMPManager->bUsePICMode == TRUE) {
+        /// PIC 모드이면 I/O 포트 어드레스 0x22에 0x70을 먼저 전송하고
+        /// I/O I/O 포트 어드레스 0x23에 0x01을 전송하는 방법으로 IMCR 레지스터에 접근하여
+        /// PIC 모드 비활성화
+        kOutPortByte(0x22, 0x70);
+        kOutPortByte(0x23, 0x01);
+    }
+
+    /// PIC 컨트롤러의 인터럽트를 모두 마스크하여 인터럽트가 발생할 수 없도록 함
+    kPrintf("Mask All PIC Controller Interrupt\n");
+    kMaskPICInterrupt(0xFFFF);
+
+    /// 프로세서 전체의 로컬 APIC를 활성화
+    kPrintf("Enable Global Local APIC\n");
+    kEnableGlobalLocalAPIC();
+
+    /// 프로세서 전체의 로컬 APIC를 활성화
+    kPrintf("Enable Software Local APIC\n");
+    kEnableSoftwareLocalAPIC();
+
+    /// 인터럽트를 불가로 설정
+    kPrintf("Disaable CPU Interrupt Flag\n");
+    bInterruptFlag = kSetInterruptFlag(FALSE);
+
+    /// 모든 인터럽트를 수신할 수 있도록 태스크 우선순위 레지스터를 0으로 설정
+    kSetTaskPriority(0);
+
+    /// 로컬 APIC의 로컬 벡터 테이블을 초기화
+    kInitializeLocalVectorTable();
+
+    /// I/O APIC 초기화
+    kPrintf("Initialize IO Redirection Table\n");
+    kInitializeIORedirectionTable();
+
+    /// 이전 인터럽트 플래그를 복원
+    kPrintf("Restore CPU Interrupt Flag\n");
+    kSetInterruptFlag(bInterruptFlag);
+
+    kPrintf("Change Symmetric I/O Mode Complete\n");
+}
+
+/// IRQ와 I/O APIC의 인터럽트 입력 핀(INTIN)의 관계를 저장한 테이블을 표시
+static void kShowIRQINTINMappingTable(const char *pcParameterBuffer) {
+    /// I/O APIC를 관리하는 자료구조에 있는 출력함수를 호출
+    kPrintIRQToINTINMap();
 }
