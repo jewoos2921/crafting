@@ -42,11 +42,11 @@
 #define APIC_DERIVERY_STATUS_PENDING                                0x001000
 
 /// 레벨(Level) 관련 매크로
-#define APIC_LEVEL_DEASSERT                                 0x000000
-#define APIC_LEVEL_ASSERT                                   0x004000
+#define APIC_LEVEL_DEASSERT                                     0x000000
+#define APIC_LEVEL_ASSERT                                       0x004000
 
 /// 트리거 모드 (Trigger Mode) 관련 매크로
-#define APIC_TRIGGER_MODE_EDGE                                 0x000000
+#define APIC_TRIGGER_MODE_EDGE                                  0x000000
 #define APIC_TRIGGER_MODE_LEVEL                                 0x008000
 
 /// 목적지 약어 (Destination Shorthand) 관련 매크로
@@ -56,15 +56,15 @@
 #define APIC_DESTINATION_SHORTHAND_ALL_EXCLUDING_SELF           0x0C0000
 
 /// 인터럽트 마스크 관련 매크로
-#define APIC_INTERRUPT_MASK                                 0x010000
+#define APIC_INTERRUPT_MASK                                     0x010000
 
 /// 타이머 모드 관련 매크로
-#define APIC_TIMERMODE_PREIODIC                     0x020000
-#define APIC_TIMERMODE_ONESHOT                     0x000000
+#define APIC_TIMERMODE_PREIODIC                                 0x020000
+#define APIC_TIMERMODE_ONESHOT                                  0x000000
 
 /// 인터럽트 입력 핀 극성 관련 매크로
-#define APIC_POLARITY_ACTIVE_LOW            0x002000
-#define APIC_POLARITY_ACTIVE_HIGH           0x000000
+#define APIC_POLARITY_ACTIVE_LOW                                0x002000
+#define APIC_POLARITY_ACTIVE_HIGH                               0x000000
 
 
 // 함수
