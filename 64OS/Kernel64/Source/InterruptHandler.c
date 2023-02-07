@@ -12,6 +12,7 @@
 #include "AssemblyUtility.h"
 #include "HardDisk.h"
 #include "LocalAPIC.h"
+#include "IOAPIC.h"
 
 /// 인터럽트 핸들러 자료구조
 static INTERRUPT_MANAGER gs_stInterruptManager;

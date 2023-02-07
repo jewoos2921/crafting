@@ -110,4 +110,6 @@ void kInitializeIORedirectionTable(void);
 
 void kPrintIRQToINTINMap(void);
 
+void kRoutingIRQToAPICID(int iIRQ, BYTE bAPICID);
+
 #endif //CRAFTING_IOAPIC_H
