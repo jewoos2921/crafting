@@ -51,4 +51,6 @@ extern volatile QWORD g_qwTickCount;
 
 void kSleep(QWORD qwMillisecond);
 
+void kPrintString(int iX, int iY, const char *pcString);
+
 #endif //CRAFTING_UTILITY_H

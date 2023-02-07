@@ -104,6 +104,7 @@ typedef struct kHDDManagerStruct {
 
     /// 인터럽트 발생 여부와 동기화 객체
     volatile BOOL bPrimaryInterruptOccur;
+    /// 메모리 맵으로 제어되는 입출력장치는 volatile
     volatile BOOL bSecondaryInterruptOccur;
     MUTEX stMutex;
     /// HDD 정보

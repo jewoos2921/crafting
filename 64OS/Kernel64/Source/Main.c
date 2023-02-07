@@ -381,19 +381,7 @@ void MainForApplicationProcessor(void) {
 //    while (1);
 //}
 
-// 문자열 출력 함수
-// 문자열을 X, Y 위치에 출력
-void kPrintString(int iX, int iY, const char *pcString) {
-    CHARACTER *pstScreen = (CHARACTER *) 0xB8000;
 
-    // X, Y 좌표를 이용해서 문자열을 출력할 어드레스르 계산
-    pstScreen += (iY * 80) + iX;
-
-    // NULL이 나올 때까지 문자열 출력
-    for (int i = 0; pcString[i] != 0; ++i) {
-        pstScreen[i].bCharactor = pcString[i];
-    }
-}
 
 /* IA-32e 모드 커널이 위치할 공간을 0으로 초기화하는 코드 */
 BOOL kInitializeKernel64Area(void) {

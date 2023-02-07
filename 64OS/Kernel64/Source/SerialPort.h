@@ -11,24 +11,25 @@
 
 
 // 매크로
+
 /// 시리얼 포트의 I/O 포트 기준 어드레스
-#define SERIAL_PORT_COM1            0x3F8
-#define SERIAL_PORT_COM2            0x2F8
-#define SERIAL_PORT_COM3            0x3E8
-#define SERIAL_PORT_COM4            0x2E8
+#define SERIAL_PORT_COM1                                            0x3F8
+#define SERIAL_PORT_COM2                                            0x2F8
+#define SERIAL_PORT_COM3                                            0x3E8
+#define SERIAL_PORT_COM4                                            0x2E8
 
 /// 각 레지스터의 오프셋
-#define SERIAL_PORT_INDEX_RECEIVE_BUFFER                0x00
-#define SERIAL_PORT_INDEX_TRANSMIT_BUFFER               0x00
-#define SERIAL_PORT_INDEX_INTERRUPT_ENABLE              0x01
-#define SERIAL_PORT_INDEX_DIVISOR_LATCH_LSB             0x00
-#define SERIAL_PORT_INDEX_DIVISOR_LATCH_MSB             0x01
-#define SERIAL_PORT_INDEX_INTERRUPT_IDENTIFICATION      0x02
-#define SERIAL_PORT_INDEX_FIFO_CONTROL                  0x02
-#define SERIAL_PORT_INDEX_LINE_CONTROL                  0x03
-#define SERIAL_PORT_INDEX_MODEM_CONTROL                 0x04
-#define SERIAL_PORT_INDEX_LINE_STATUS                   0x05
-#define SERIAL_PORT_INDEX_MODEM_STATUS                  0x06
+#define SERIAL_PORT_INDEX_RECEIVE_BUFFER                                0x00
+#define SERIAL_PORT_INDEX_TRANSMIT_BUFFER                               0x00
+#define SERIAL_PORT_INDEX_INTERRUPT_ENABLE                              0x01
+#define SERIAL_PORT_INDEX_DIVISOR_LATCH_LSB                             0x00
+#define SERIAL_PORT_INDEX_DIVISOR_LATCH_MSB                             0x01
+#define SERIAL_PORT_INDEX_INTERRUPT_IDENTIFICATION                      0x02
+#define SERIAL_PORT_INDEX_FIFO_CONTROL                                  0x02
+#define SERIAL_PORT_INDEX_LINE_CONTROL                                  0x03
+#define SERIAL_PORT_INDEX_MODEM_CONTROL                                 0x04
+#define SERIAL_PORT_INDEX_LINE_STATUS                                   0x05
+#define SERIAL_PORT_INDEX_MODEM_STATUS                                  0x06
 
 /// 인터럽트 활성화 레지스터에 관한 매크로
 #define SERIAL_INTERRUPT_ENABLE_RECEIVE_BUFFER_FULL         0x01
@@ -97,9 +98,9 @@ int kReceiveSerialData(BYTE *pbBuffer, int iSize);
 
 void kClearSerialFIFO(void);
 
-static BOOL kIsSerialTransmitterBufferEmpty(void );
+static BOOL kIsSerialTransmitterBufferEmpty(void);
 
-static BOOL kIsSerialReceiveBufferFull(void );
+static BOOL kIsSerialReceiveBufferFull(void);
 
 
 #endif //CRAFTING_SERIALPORT_H
