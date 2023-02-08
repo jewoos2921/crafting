@@ -390,9 +390,9 @@ void kSchedule(void) {
 
     // 다음 수행할 태스크가 FPU를 쓴 태스크가 아니라면 TS 비트 설정
     if (gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID) {
-        kSetTS();
+        kSetTS(); /* CR0 컨트롤 레지스터의 TS 비트를 1로 설정하는 함수 */
     } else {
-        kClearTS();
+        kClearTS(); /* CR0 컨트롤 레지스터의 TS 비트를 0로 설정하는 함수 */
     }
 
 

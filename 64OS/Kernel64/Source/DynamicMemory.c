@@ -57,13 +57,14 @@ void kInitializeDynamicMemory(void) {
             pbCurrentBitmapPosition++;
         }
 
-        // 8로 나누어 떨어지지 않는 나머지 블록들에 대한 처리
+        /// 8로 나누어 떨어지지 않는 나머지 블록들에 대한 처리
         if ((iBlockCountOfLevel % 8) != 0) {
             *pbCurrentBitmapPosition = 0x00;
-            // 남은 블록이 홀수라면 마지막 한 블록은 결합되어 상위 블록으로 이동하지 못함
-            // 따라서 마지막 블록은 현재 블록 리스트에 존재하는 자투리 블록으로 삭제
+            /// 남은 블록이 홀수라면 마지막 한 블록은 결합되어 상위 블록으로 이동하지 못함
+            /// 따라서 마지막 블록은 현재 블록 리스트에 존재하는 자투리 블록으로 삭제
             i = iBlockCountOfLevel % 8;
-            if ((i % 2) == 0) {
+            if ((i % 2) == 1) {
+                /// i는 바이트 내의 가장 마지막 블록의 오프셋을 나타냄
                 *pbCurrentBitmapPosition |= (DYNAMIC_MEMORY_EXIST << (i - 1));
                 gs_stDynamicMemory.pstBitmapOfLevel[j].qwExistBitCount = 1;
             }
@@ -71,7 +72,7 @@ void kInitializeDynamicMemory(void) {
         }
     }
 
-    // 블록 폴의 어드레스와 사용된 메모리 크기 설정
+    /// 블록 폴의 어드레스와 사용된 메모리 크기 설정
     gs_stDynamicMemory.qwStartAddress = DYNAMIC_MEMORY_START_ADDRES + iMetaBlockCount * DYNAMIC_MEMORY_MIN_SIZE;
     gs_stDynamicMemory.qwEndAddress = kCalculateDynamicMemorySize() + DYNAMIC_MEMORY_START_ADDRES;
     gs_stDynamicMemory.qwUsedSize = 0;
@@ -114,7 +115,8 @@ static int kCalculateMetaBlockCount(QWORD qwDynamicRAMSize) {
     }
 
     // 사용한 메모리 영역의 크기를 최소 블록 크기로 올림해서 반환
-    return (dwSizeOfAllocatedBlockListIndex + dwSizeOfBitmap + DYNAMIC_MEMORY_MIN_SIZE - 1) / DYNAMIC_MEMORY_MIN_SIZE;
+    return (dwSizeOfAllocatedBlockListIndex + dwSizeOfBitmap
+            + DYNAMIC_MEMORY_MIN_SIZE - 1) / DYNAMIC_MEMORY_MIN_SIZE;
 }
 
 // 메모리를 할당
@@ -135,7 +137,7 @@ void *kAllocateMemory(QWORD qwSize) {
         return NIL;
     }
 
-    // 버디 블록 할당하고 할당된 블록이 속한 블록 리스트의 인덱스를 반환
+    /// 버디 블록 할당하고 할당된 블록이 속한 블록 리스트의 인덱스를 반환
     lOffset = kAllocationBuddyBlock(qwAlignedSize);
     if (lOffset == -1) {
         return NIL;
@@ -143,14 +145,15 @@ void *kAllocateMemory(QWORD qwSize) {
 
     iIndexOfBlockList = kGetBlockListIndexOfMatchSize(qwAlignedSize);
 
-    // 블록 크기를 저장하는 영역에 실제로 할당된 버디 블록이 속한 블록 리스트의 인덱스를 저장
-    // 메모리를 해제할 때 블록 리스트의 인덱스를 사용
+    /// 블록 크기를 저장하는 영역에 실제로 할당된 버디 블록이 속한 블록 리스트의 인덱스를 저장
+    /// 메모리를 해제할 때 블록 리스트의 인덱스를 사용
     qwRelativeAddress = qwAlignedSize * lOffset;
     iSizeArrayOffset = qwRelativeAddress / DYNAMIC_MEMORY_MIN_SIZE;
 
     gs_stDynamicMemory.pbAllocatedBlockListIndex[iSizeArrayOffset] = (BYTE) iIndexOfBlockList;
     gs_stDynamicMemory.qwUsedSize += qwAlignedSize;
 
+    /// 블록 풀을 기준으로 하는 어드레스와 블록 풀의 시작 어드레스를 더하여 실제 메모리 어드레스를 계산
     return (void *) (qwRelativeAddress + gs_stDynamicMemory.qwStartAddress);
 }
 

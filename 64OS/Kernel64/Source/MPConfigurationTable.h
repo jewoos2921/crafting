@@ -8,6 +8,17 @@
 
 #include "Types.h"
 
+/* 확장 BIOS 데이터 영역의 시작 어드레스에서 1KB 범위 내에 존재
+ * - 확장 BIOS 데이터 영역의 시작 어드레스는 물리 메모리 어드레스 0x040E에 2바이트로 저장되어 있음
+ * - 저장된 값은 확장 BIOS 데이터 영역이 시작하는 세그먼트의 어드레스임, 따라서 저장된 값에 16을 곱해야 실제 확장 BIOS 데이터 영역이 시작하는 실제 물리 어드레스가 됨
+ * 시스템 기본 메모리의 끝부분에서 1KB 이하 범위에 존재
+ * - 640KB의 기본 메모리를 가지고 있다면 639KB~640KB 범위 내에 존재
+ * - 시스템 기본 메모리의 크기는 물리 메모리 어드레스 0x0413에 2바이트로 저장되어 있음
+ * - 저장된 값의 단위는 KB이므로 1024를 곱하여 실제 크기로 변환해야 함
+ * - BIOS의 롬 영역 중에서 0x0F0000~0x0FFFFF 범위 내에 존재
+ */
+
+
 // 매크로
 /// MP 플로팅 포인터의 특성 바이트(Feature Byte)
 #define MP_FLOATING_POINTER_FEATURE_BYTE1_USE_MP_TABLE      0x00
@@ -71,7 +82,7 @@ typedef struct kMPFloatingPointerStruct {
     BYTE vbMPFeatureByte[5];
 } MP_FLOATING_POINTER;
 
-// MP 설정 테이블 헤더 (MP Configuration Table Header) 자료구조
+/// MP 설정 테이블 헤더 (MP Configuration Table Header) 자료구조
 typedef struct kMPConfigurationTableHeaderStruct {
     /// 시그너처, PCMP
     char vcSignature[4];

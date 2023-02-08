@@ -55,7 +55,7 @@ INTERRUPT_MANAGER *kGetInterruptManager(void) {
     return &gs_stInterruptManager;
 };
 
-///
+/// 인터럽트 부하 분산 처리
 void kProcessLoadBalancing(int iIRQ) {
     QWORD qwMinCount = 0xFFFFFFFFFFFFFFFF;
     int iMinCountCoreIndex;

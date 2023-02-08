@@ -35,7 +35,7 @@ BOOL kStartUpApplicationProcessor(void) {
     return TRUE;
 }
 
-/// AP(Application Processor)를 활성화
+/// AP(Application Processor)를 활성화 (BSP를 제외)
 static BOOL kWakeUpApplicationProcessor(void) {
     MP_CONFIGURATION_TABLE_HEADER *pstMPHeader;
     MP_CONFIGURATION_MANAGER *pstMPManager;
