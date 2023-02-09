@@ -8,17 +8,19 @@
 #define CRAFTING_KEYBOARD_H
 
 #include "Types.h"
+#include "Synchronization.h"
 
 // 매크로
-// Pause 키를 처리하기 위해 무시해야 하는 나머지 스캔 코드의 수
+
+/// Pause 키를 처리하기 위해 무시해야 하는 나머지 스캔 코드의 수
 #define KEY_SKIP_COUNT_FOR_PAUSE                        2
 
-// 키 상태에 대한 플래그
+/// 키 상태에 대한 플래그
 #define KEY_FLAGS_UP                                    0x00
 #define KEY_FLAGS_DOWN                                  0x01
 #define KEY_FLAGS_EXTENDED_KEY                          0x02
 
-// 스캔 코드 매핑 테이블에 대한 매크로
+/// 스캔 코드 매핑 테이블에 대한 매크로
 #define KEY_MAPPING_TABLE_MAX_COUNT                     89
 
 #define KEY_NONE                    0x00
@@ -78,6 +80,10 @@ typedef struct kKeyMappingEntryStruct {
 
 // 키보드의 상태를 관리하는 자료 구조
 typedef struct kKeyboardManagerStruct {
+
+    /// 자료구조 동기화를 위한 스핀락
+    SPINLOCK stSpinLock;
+
     // 조합 키 정보
     BOOL bShiftDown;
     BOOL bCapsLockDown;
