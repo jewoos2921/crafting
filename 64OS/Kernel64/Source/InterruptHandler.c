@@ -222,6 +222,7 @@ void kTimerHandler(int iVectorNumber) {
 
         /// 태스크가 사용한 프로세서의 시간을 줄임
         kDecreaseProcessorTime();
+
         /// 프로세서가 사용할 수 있는 시간을 다 썼다면 태스크 전환을 수행
         if (kIsProcessorTimeExpired() == TRUE) {
             kScheduleInterrupt();

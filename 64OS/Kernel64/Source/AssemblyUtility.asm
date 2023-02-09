@@ -9,9 +9,9 @@ extern Main
 global kInPortByte, kOutPortByte, kInPortWord, kOutPortWord
 global kLoadGDTR, kLoadTR, kLoadIDTR
 global kEnableInterrupt , kDisableInterrupt, kReadRFLAGS
-global kReadTSC
+global kReadTSC 
 global kSwitchContext
-global kHlt, kTestAndSet
+global kHlt, kTestAndSet, kPause
 global kInitializeFPU, kSaveFPUContext, kLoadFPUContext, kSetTS, kClearTS
 global kEnableGlobalLocalAPIC
 
@@ -343,3 +343,8 @@ kEnableGlobalLocalAPIC:
     pop rax
     ret
     
+; 프로세서를 쉬게 함
+;   PARAM: 없음
+kPause:
+    pause  ; 프로세서를 일시 중지 상태로 진입시킴
+    ret 

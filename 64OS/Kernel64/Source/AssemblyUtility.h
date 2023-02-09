@@ -81,4 +81,6 @@ void kOutPortWord(WORD wPort, WORD wData);
 
 void kEnableGlobalLocalAPIC(void);
 
+void kPause(void);
+
 #endif //CRAFTING_ASSEMBLYUTILITY_H
