@@ -265,7 +265,7 @@ MP_CONFIGURATION_MANAGER *kGetMPConfigurationManager(void);
 
 void kPrintMPConfigurationTable(void);
 
-int iGetProcessorCount(void);
+int kGetProcessorCount(void);
 
 IO_APIC_ENTRY *kFindIOAPICEntryForISA(void);
 

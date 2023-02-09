@@ -136,4 +136,8 @@ static void kStartSymmetricIOMode(const char *pcParameterBuffer);
 
 static void kShowIRQINTINMappingTable(const char *pcParameterBuffer);
 
+static void kShowInterruptProcessingCount(const char *pcParameterBuffer);
+
+static void kStartInterruptLoadBalancing(const char *pcParameterBuffer);
+
 #endif //CRAFTING_CONSOLESHELL_H

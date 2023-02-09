@@ -403,7 +403,7 @@ void kPrintMPConfigurationTable(void) {
 }
 
 /// 프로세서 또는 코어의 개수를 반환
-int iGetProcessorCount(void) {
+int kGetProcessorCount(void) {
     /// MP 설정 테이블이 없을 수도 있으므로 0으로 설정되면 1을 반환
     if (gs_stMPConfigurationManager.iProcessorCount == 0) {
         return 1;
