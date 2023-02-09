@@ -76,6 +76,10 @@ void kInitializeDynamicMemory(void) {
     gs_stDynamicMemory.qwStartAddress = DYNAMIC_MEMORY_START_ADDRES + iMetaBlockCount * DYNAMIC_MEMORY_MIN_SIZE;
     gs_stDynamicMemory.qwEndAddress = kCalculateDynamicMemorySize() + DYNAMIC_MEMORY_START_ADDRES;
     gs_stDynamicMemory.qwUsedSize = 0;
+
+
+    /// 스핀락 초기화
+    kInitializeSpinLock(&(gs_stDynamicMemory.stSpinLock));
 }
 
 // 동적 메모리 영역의 크기를 계산
@@ -173,7 +177,7 @@ static QWORD kGetBuddyBlockSize(QWORD qwSize) {
 static int kAllocationBuddyBlock(QWORD qwAlignedSize) {
     int iBlockListIndex, iFreeOffset;
     int i;
-    BOOL bPreviousInterruptFlag;
+
 
     // 블록 크기를 만족하는 블록 리스트의 인데스를 검색
     iBlockListIndex = kGetBlockListIndexOfMatchSize(qwAlignedSize);
@@ -182,7 +186,7 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize) {
     }
 
     // 동기화 처리
-    bPreviousInterruptFlag = kLockForSystemData();
+    kLockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     // 만족하는 블록 리스트로부터 최상위 블록 리스트까지 검색하여 블록을 선택
     for (i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++) {
@@ -193,7 +197,7 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize) {
 
     // 마지막 블록 리스트까지 검색 했는데도 없으면 실패
     if (iFreeOffset == -1) {
-        kUnlockForSystemData(bPreviousInterruptFlag);
+        kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
         return -1;
     }
 
@@ -213,7 +217,7 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize) {
         }
     }
 
-    kUnlockForSystemData(bPreviousInterruptFlag);
+    kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     return iFreeOffset;
 }
@@ -322,10 +326,9 @@ static BOOL kFreeBudyBlockint(int iBlockListIndex, int iBlockOffset) {
     int i;
     int iBuddyBlockOffset;
     BOOL bFlag;
-    BOOL bPreviousInterruptFlag;
 
     // 동기화 처리
-    bPreviousInterruptFlag = kLockForSystemData();
+    kLockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     // 블록 리스트의 끝까지 인접한 블록을 검사하여 결합할 수 없을 때까지 반복
     for (i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++) {
@@ -352,7 +355,7 @@ static BOOL kFreeBudyBlockint(int iBlockListIndex, int iBlockOffset) {
         // 위의 과정을 상위 블록에서 다시 반복
         iBlockOffset = iBlockOffset / 2;
     }
-    kUnlockForSystemData(bPreviousInterruptFlag);
+    kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
     return TRUE;
 }
 

@@ -22,9 +22,12 @@
  * */
 
 #include "Types.h"
+#include "Synchronization.h"
+
 
 // 동적 메모리 영역의 시작 어드레스, 1MB 단위로 결정
-#define DYNAMIC_MEMORY_START_ADDRES         ((TASK_STACK_POOL_ADDRESS + (TASK_STACK_SIZE * TASK_MAX_COUNT) + 0xfffff) & 0xfffffffffff00000)
+#define DYNAMIC_MEMORY_START_ADDRES         ((TASK_STACK_POOL_ADDRESS + \
+                                            (TASK_STACK_SIZE * TASK_MAX_COUNT) + 0xfffff) & 0xfffffffffff00000)
 
 // 버디 블록의 최소 크기, 1KB
 #define DYNAMIC_MEMORY_MIN_SIZE             (1 * 1024)
@@ -42,6 +45,9 @@ typedef struct kBitmapStruct {
 
 // 버디 블록을 관리하는 자료구조
 typedef struct kDynamicMemoryManagerStruct {
+    /// 자료구조 동기화를 위한 스핀락
+    SPINLOCK stSpinLock;
+
     // 블록 리스트의 총 개수와 가장 크기가 가장 작은 블록의 개수, 할당된 메모리 크기
     int iMaxLevelCount;
     int iBlockCountOfSmallestBlock;
