@@ -926,109 +926,128 @@ BOOL kChangeProcessorAffinity(QWORD qwTaskID, BYTE bAffinity) {
 }
 
 
-
 // =========================================================================================
-//      유휴 태스크 관련
+///      유휴 태스크 관련
 // =========================================================================================
 
-// 유휴 태스크
-//      대기 큐에 삭제 대기 중인 태스크를 정리
+/// 유휴 태스크
+///      대기 큐에 삭제 대기 중인 태스크를 정리
 void kIdleTask(void) {
     TCB *pstChildThread;
     TCB *pstProcess;
     TCB *pstTask;
     QWORD qwLastMeasureTickCount, qwLastSpendTickInIdleTask;
     QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickIdleTask;
-    int i, iCount;
+    QWORD qwChildThreadID;
     QWORD qwTaskID;
+    int i, iCount;
     void *pstThreadLink;
+    BYTE bCurrentAPICID;
+    BYTE bProcessAPICID;
 
-    // 프로세서 사용량 계산을 위해 기준 정보를 저장
+    /// 현재 코어릐 로컬 APIC ID를 확인
+    bCurrentAPICID = kGetAPICID();
+
+    /// 프로세서 사용량 계산을 위해 기준 정보를 저장
+    qwLastSpendTickInIdleTask = gs_vstScheduler[bCurrentAPICID].qwSpendProcessorTimeInIdleTask;
     qwLastMeasureTickCount = kGetTickCount();
-    qwLastSpendTickInIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
 
     while (1) {
-        // 현재 상태를 저장
+        /// 현재 상태를 저장
         qwCurrentMeasureTickCount = kGetTickCount();
-        qwCurrentSpendTickIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
+        qwCurrentSpendTickIdleTask = gs_vstScheduler[bCurrentAPICID].qwSpendProcessorTimeInIdleTask;
 
-        // 프로세서 사용량을 계산
-        // 100 - (유휴 태스크가 사용한 프로세서 시간) * 100 / (시스템 전체에서 사용한 프로세서 시간)
+        /// 프로세서 사용량을 계산
+        /// 100 - (유휴 태스크가 사용한 프로세서 시간) * 100 / (시스템 전체에서 사용한 프로세서 시간)
         if (qwCurrentMeasureTickCount - qwLastMeasureTickCount == 0) {
-            gs_stScheduler.qwProcessorLoad = 0;
+            gs_vstScheduler[bCurrentAPICID].qwProcessorLoad = 0;
         } else {
-            gs_stScheduler.qwProcessorLoad = 100 - (qwCurrentSpendTickIdleTask - qwLastSpendTickInIdleTask) *
-                                                   100 / (qwCurrentMeasureTickCount - qwLastMeasureTickCount);
+            gs_vstScheduler[bCurrentAPICID].qwProcessorLoad =
+                    100 - (qwCurrentSpendTickIdleTask - qwLastSpendTickInIdleTask) *
+                          100 / (qwCurrentMeasureTickCount - qwLastMeasureTickCount);
         }
 
-        // 현재 상태를 이전 상태에 보관
+        /// 현재 상태를 이전 상태에 보관
         qwLastMeasureTickCount = qwCurrentMeasureTickCount;
         qwLastSpendTickInIdleTask = qwCurrentSpendTickIdleTask;
 
-        // 프로세서의 부하에 따라 쉬게 함
-        kHaltProcessorByLoad();
+        /// 프로세서의 부하에 따라 쉬게 함
+        kHaltProcessorByLoad(bCurrentAPICID);
 
-        // 대기 큐에 대기 중인 태스크가 있으면 태스크를 종료함
-        if (kGetListCount(&(gs_stScheduler.stWaitList)) >= 0) {
+        /// 대기 큐에 대기 중인 태스크가 있으면 태스크를 종료함
+        if (kGetListCount(&(gs_vstScheduler[bCurrentAPICID].stWaitList)) > 0) {
             while (1) {
 
-                // 임계 영역 시작
-                kLockForSpinLock(&(gs_stScheduler.stSpinLock));
-                pstTask = kRemoveListFromHeader(&(gs_stScheduler.stWaitList));
-                if (pstTask == NIL) {
-                    // 임계 영역 끝
-                    kUnlockForSpinLock(&(gs_stScheduler.stSpinLock));
-                    break;
-                }
+                /// 임계 영역 시작
+                kLockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                pstTask = kRemoveListFromHeader(&(gs_vstScheduler[bCurrentAPICID].stWaitList));
+                /// 임계 영역 끝
+                kUnlockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                if (pstTask == NIL) { break; }
 
                 if (pstTask->qwFlags & TASK_FLAGS_PROCESS) {
 
-                    // 프로세스를 종료할때 자식 스레드가 존재하면 스레드를 모두 종료하고,
-                    // 다시 자식 스레드 리스트에 삽입
+                    /// 프로세스를 종료할때 자식 스레드가 존재하면 스레드를 모두 종료하고,
+                    /// 다시 자식 스레드 리스트에 삽입
                     iCount = kGetListCount(&(pstTask->stChildThreadList));
-
                     for (i = 0; i < iCount; i++) {
-                        // 스레드 링크의 어드레스에 꺼내 스레드를 종료
-                        pstThreadLink = (TCB *) kRemoveListFromHeader(&(pstTask->stChildThreadList));
-                        if (pstThreadLink == NIL) { break; }
 
-                        // 자식 스레드 리스트에 연결된 정보는 태스크 자료구조에 있는
-                        // stThreadLink의 시작 어드래스이므로, 태스크 자료구조의 시작
-                        // 어드레스를 구하려면 별도의 계산이 필요함
+                        /// 임계 영역 시작
+                        kLockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                        /// 스레드 링크의 어드레스에 꺼내 스레드를 종료
+                        pstThreadLink = (TCB *) kRemoveListFromHeader(&(pstTask->stChildThreadList));
+                        if (pstThreadLink == NIL) {
+                            /// 임계 영역 끝
+                            kUnlockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                            break;
+                        }
+
+                        /// 자식 스레드 리스트에 연결된 정보는 태스크 자료구조에 있는
+                        /// stThreadLink의 시작 어드래스이므로, 태스크 자료구조의 시작
+                        /// 어드레스를 구하려면 별도의 계산이 필요함
                         pstChildThread = GET_TCB_FROM_THREAD_LINK(pstThreadLink);
 
-                        // 다시 자식 스레드 리스트에 삽입하여 해당 스레드가 종료될 때
-                        // 자식 스레드가 프로세스를 찾아 스스로 리스트에서 제거하도록 함
+                        /// 다시 자식 스레드 리스트에 삽입하여 해당 스레드가 종료될 때
+                        /// 자식 스레드가 프로세스를 찾아 스스로 리스트에서 제거하도록 함
                         kAddListTotail(&(pstTask->stChildThreadList),
                                        &(pstChildThread->stThreadLink));
-                        // 자식 스레드를 찾아서 종료
+                        /// 임계 영역 끝
+                        kUnlockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+
+                        /// 자식 스레드를 찾아서 종료
                         kEndTask(pstChildThread->stLink.qwID);
                     }
 
                     // 아직 자식 스레드가 남아있다면 자식 스레드가 다 종료될 대까지
                     // 기다려야 하므로 다시 대기 리스트에 삽입
                     if (kGetListCount(&(pstTask->stChildThreadList)) >> 0) {
-                        kAddListTotail(&(gs_stScheduler.stWaitList), pstTask);
+                        /// 임계 영역 시작
+                        kLockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                        kAddListTotail(&(gs_vstScheduler[bCurrentAPICID].stWaitList), pstTask);
 
-                        // 임계 영역 끝
-                        kUnlockForSpinLock(&(gs_stScheduler.stSpinLock));
+                        /// 임계 영역 끝
+                        kUnlockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
                         continue;
-                    } else { // 프로세스를 종료해야 하므로 할당받은 메모리 영역을 삭제
-                        // TODO: 추후에 코드 삽입
+                    } else { /// 프로세스를 종료해야 하므로 할당받은 메모리 영역을 삭제
+                        /// TODO: 추후에 코드 삽입
                     }
                 } else if (pstTask->qwFlags & TASK_FLAGS_THREAD) {
-                    // 스레드라면 프로세스의 자식 스레드 리스트에서 제거
+                    /// 스레드라면 프로세스의 자식 스레드 리스트에서 제거
                     pstProcess = kGetProcessByThread(pstTask);
                     if (pstProcess != NIL) {
-                        kRemoveList(&(pstProcess->stChildThreadList), pstTask->stLink.qwID);
+
+                        /// 프로세서 ID로 프로세스가 속한 스케줄러의 ID를 찾고 스핀락 잠금
+                        if (kFindSchedulerOfTaskAndLock(pstProcess->stLink.qwID, &bProcessAPICID) == TRUE) {
+                            kRemoveList(&(pstProcess->stChildThreadList), pstTask->stLink.qwID);
+                            /// 임계 영역 끝
+                            kUnlockForSpinLock(&(gs_vstScheduler[bCurrentAPICID].stSpinLock));
+                        }
                     }
                 }
 
+                /// 여기까지오면 태스크가 정상적으로 종료된 것이므로 태스크 자료구조(TCB)를 반환
                 qwTaskID = pstTask->stLink.qwID;
-                kFreeTCB(pstTask->stLink.qwID);
-                // 임계 영역 끝
-                kUnlockForSpinLock(&(gs_stScheduler.stSpinLock));
-
+                kFreeTCB(qwTaskID);
                 kPrintf("IDLE: Task ID[0x%q] is completely ended.\n",
                         qwTaskID);
             }
@@ -1042,7 +1061,7 @@ void kHaltProcessorByLoad(BYTE bAPICID) {
     if (gs_vstScheduler[bAPICID].qwProcessorLoad < 40) {
         kHlt();
         kHlt();
-        kHlt();/
+        kHlt();
     } else if (gs_vstScheduler[bAPICID].qwProcessorLoad < 80) {
         kHlt();
         kHlt();
