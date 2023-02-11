@@ -59,6 +59,10 @@ int main() {
         MainForApplicationProcessor();
     }
 
+    /// Bootstrap Processor가 부팅을 완료했으므로, 0x7C09에 있는 Bootstrap Processor를
+    /// 나타내는 플래그를 0으로 설정하여 Application Processor용으로 코드 실행 경로를 변경
+    *((BYTE *) BOOTSTRAP_PROCESSOR_FLAG_ADDRESS) = 0;
+
     /// 콘솔을 먼저 초기화한 후 다음 작업을 수행
     kInitializeConsole(0, 10);
     kPrintf("Switch to IA-32e Mode Success~!!\n");
@@ -150,8 +154,8 @@ int main() {
     kInitializeSerialPort();
 
     /// 유휴 태스크를 수행하고 셸을 시작
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE | TASK_FLAGS_SYSTEM | TASK_FLAGS_THREAD,
-                0, 0, (QWORD) kIdleTask);
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE,
+                0, 0, (QWORD) kIdleTask, kGetAPICID());
 
     kStartConsoleShell();
 }
@@ -172,6 +176,9 @@ void MainForApplicationProcessor(void) {
     /// IDT 테이블을 설정
     kLoadIDTR(IDTR_START_ADDRESS);
 
+    /// 스케줄러 초기화
+    kInitializeScheduler();
+
     /// 현재 코어의 로컬 APIC를 활성화
     kEnableGlobalLocalAPIC(); // 모든 코어 또는 프로세서의 로컬 APIC를 활성화는 BSP가 이미 했으므로, 개별 로컬 APIC 활성화 처리만 수행
 
@@ -191,10 +198,13 @@ void MainForApplicationProcessor(void) {
         if (kGetTickCount() - qwTickCount > 1000) {
             qwTickCount - kGetTickCount();
 
-            /// 대칭 I/O 모드 테스크를 위해 Application Processor가 시작한 후 한 번만 출력
-//            kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
-//                    kGetAPICID());
         }
+        /// 대칭 I/O 모드 테스크를 위해 Application Processor가 시작한 후 한 번만 출력
+        kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
+                kGetAPICID());
+
+        /// 유휴 태스크 실행
+        kIdleTask();
     }
 }
 
