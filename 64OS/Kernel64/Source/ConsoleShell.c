@@ -24,50 +24,51 @@
 
 // 커맨드 테이블 정의
 SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
-        {"help",             "Show Help",                                                   kHelp},
-        {"cls",              "Clear Screen",                                                kCls},
-        {"totalram",         "Show Total RAM Size",                                         kShowTotalRAMSize},
-        {"strtod",           "String to Decial/Hex Convert",                                kStringToDecimalHexTest},
-        {"shutdown",         "Shutdown And Reboot OS",                                      kShutdown},
-        {"settimer",         "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", kSetTimer},
-        {"wait",             "Wait ms Using PIT, ex)wait 100(ms)",                          kWaitUsingPIT},
-        {"rdtsc",            "Read Time Stamp Counter",                                     kReadTimeStampCounter},
-        {"cpuspeed",         "Measure Processor Speed",                                     kMeasureProcessorSpeed},
-        {"date",             "Show Date And Time",                                          kShowDateAndTime},
-        {"createtask",       "Create Task",                                                 kCreateTestTask},
-        {"changepriority",   "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",   kChangeTaskPriority},
-        {"tasklist",         "Show Task List",                                              kShowTaskList},
-        {"killtask",         "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",         kKillTask},
-        {"cpuload",          "Show Processor Load",                                         kCPULoad},
-        {"testmutex",        "Test Mutex Function",                                         kTestMutex},
-        {"testthread",       "Test Thread And Process Function",                            kTestThread},
-        {"showmatrix",       "Show Matrix Screen",                                          kShowMatrix},
-        {"testpie",          "Test PIE Calculation",                                        kTestPIE},
-        {"dynamicmeminfo",   "Show Dynamic Memory Information",                             kShowDynamicMemoryInformation},
-        {"testseqalloc",     "Test Sequential Allocation & Free",                           kTestSequentialAllocation},
-        {"testranalloc",     "Test Random Allocation & Free",                               kTestRandomAllocation},
-        {"hddinfo",          "Show HDD Information",                                        kShowHDDInformation},
-        {"readsector",       "Read HDD Sector ex)readsector 0(LBA) 10(count)",              kReadSector},
-        {"writesector",      "Write HDD Sector ex)writesector 0(LBA) 10(count)",            kWriteSector},
-        {"mounthdd",         "Mount HDD",                                                   kMountHDD},
-        {"formathdd",        "Format HDD",                                                  kFormatHDD},
-        {"filesysteminfo",   "Show File System Information",                                kShowFileSystemInformation},
-        {"createfile",       "Create File, ex)createfile a.txt",                            kCreateFileInRootDirectory},
-        {"deletefile",       "Delete File, ex)deletefile a.txt",                            kDeleteFileInRootDirectory},
-        {"dir",              "Show Directory",                                              kShowRootDirectory},
-        {"writefile",        "Write Data To File, ex) writefile a.txt",                     kWriteDataToFile},
-        {"readfile",         "Read Data To File, ex) readfile a.txt",                       kReadDataToFile},
-        {"testfileio",       "Test File I/O Function",                                      kTestFileIO},
-        {"testperformance",  "Test File Read/WritePerformance",                             kTestPerformance},
-        {"flush",            "Flush File System Cache",                                     kFlushCache},
-        {"download",         "Download Data From Serial, ex) download a.txt",               kDownloadFile},
-        {"showmpinfo",       "Show MP Configuration Table Information",                     kShowMPConfigurationTable},
-        {"startap",          "Start Application Processor",                                 kStartApplicationProcessor},
-        {"startsymmetricio", "Start Symmetric I/O Mode",                                    kStartSymmetricIOMode},
-        {"showirqintinmap",  "Show IRQ->INITIN Mapping Table",                              kShowIRQINTINMappingTable},
-        {"showintprocount",  "Show Interrupt Processing Count",                             kShowInterruptProcessingCount},
-        {"startintloadbal",  "Show Interrupt Load Balancing",                               kStartInterruptLoadBalancing},
-
+        {"help",             "Show Help",                                                    kHelp},
+        {"cls",              "Clear Screen",                                                 kCls},
+        {"totalram",         "Show Total RAM Size",                                          kShowTotalRAMSize},
+        {"strtod",           "String to Decial/Hex Convert",                                 kStringToDecimalHexTest},
+        {"shutdown",         "Shutdown And Reboot OS",                                       kShutdown},
+        {"settimer",         "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)",  kSetTimer},
+        {"wait",             "Wait ms Using PIT, ex)wait 100(ms)",                           kWaitUsingPIT},
+        {"rdtsc",            "Read Time Stamp Counter",                                      kReadTimeStampCounter},
+        {"cpuspeed",         "Measure Processor Speed",                                      kMeasureProcessorSpeed},
+        {"date",             "Show Date And Time",                                           kShowDateAndTime},
+        {"createtask",       "Create Task",                                                  kCreateTestTask},
+        {"changepriority",   "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",    kChangeTaskPriority},
+        {"tasklist",         "Show Task List",                                               kShowTaskList},
+        {"killtask",         "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",          kKillTask},
+        {"cpuload",          "Show Processor Load",                                          kCPULoad},
+        {"testmutex",        "Test Mutex Function",                                          kTestMutex},
+        {"testthread",       "Test Thread And Process Function",                             kTestThread},
+        {"showmatrix",       "Show Matrix Screen",                                           kShowMatrix},
+        {"testpie",          "Test PIE Calculation",                                         kTestPIE},
+        {"dynamicmeminfo",   "Show Dynamic Memory Information",                              kShowDynamicMemoryInformation},
+        {"testseqalloc",     "Test Sequential Allocation & Free",                            kTestSequentialAllocation},
+        {"testranalloc",     "Test Random Allocation & Free",                                kTestRandomAllocation},
+        {"hddinfo",          "Show HDD Information",                                         kShowHDDInformation},
+        {"readsector",       "Read HDD Sector ex)readsector 0(LBA) 10(count)",               kReadSector},
+        {"writesector",      "Write HDD Sector ex)writesector 0(LBA) 10(count)",             kWriteSector},
+        {"mounthdd",         "Mount HDD",                                                    kMountHDD},
+        {"formathdd",        "Format HDD",                                                   kFormatHDD},
+        {"filesysteminfo",   "Show File System Information",                                 kShowFileSystemInformation},
+        {"createfile",       "Create File, ex)createfile a.txt",                             kCreateFileInRootDirectory},
+        {"deletefile",       "Delete File, ex)deletefile a.txt",                             kDeleteFileInRootDirectory},
+        {"dir",              "Show Directory",                                               kShowRootDirectory},
+        {"writefile",        "Write Data To File, ex) writefile a.txt",                      kWriteDataToFile},
+        {"readfile",         "Read Data To File, ex) readfile a.txt",                        kReadDataToFile},
+        {"testfileio",       "Test File I/O Function",                                       kTestFileIO},
+        {"testperformance",  "Test File Read/WritePerformance",                              kTestPerformance},
+        {"flush",            "Flush File System Cache",                                      kFlushCache},
+        {"download",         "Download Data From Serial, ex) download a.txt",                kDownloadFile},
+        {"showmpinfo",       "Show MP Configuration Table Information",                      kShowMPConfigurationTable},
+        {"startap",          "Start Application Processor",                                  kStartApplicationProcessor},
+        {"startsymmetricio", "Start Symmetric I/O Mode",                                     kStartSymmetricIOMode},
+        {"showirqintinmap",  "Show IRQ->INITIN Mapping Table",                               kShowIRQINTINMappingTable},
+        {"showintprocount",  "Show Interrupt Processing Count",                              kShowInterruptProcessingCount},
+        {"startintloadbal",  "Show Interrupt Load Balancing",                                kStartInterruptLoadBalancing},
+        {"starttaskladbal",  "Start Task Load Balancing",                                    kStartTaskLoadBalancing},
+        {"changeaffinity",   "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
 };
 
 
@@ -1108,7 +1109,7 @@ static void kTestTask1(void) {
     TCB *pstRunningTask;
 
     // 자신의 ID를 얻어서 화면 오프셋으로 사용
-    pstRunningTask = kGetRunningTask();
+    pstRunningTask = kGetRunningTask(kGetAPICID());
     iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
 
 
@@ -1151,8 +1152,7 @@ static void kTestTask1(void) {
         // 다른 태스크로 전환
 //        kSchedule();
     }
-
-    kExitTask();
+//    kExitTask();
 }
 
 // 자신의 ID를 참고하여 특정 위치에 회전하는 바람개비를 출력
@@ -1164,7 +1164,7 @@ static void kTestTask2(void) {
     char vcData[4] = {'-', '\\', '|', '/'};
 
     // 자신의 ID를 얻어서 화면 오프셋으로 사용
-    pstRunningTask = kGetRunningTask();
+    pstRunningTask = kGetRunningTask(kGetAPICID());
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
 
@@ -1180,7 +1180,39 @@ static void kTestTask2(void) {
     }
 }
 
-// 테스크를 생성해서 멀티 스태킹 수행
+/// 태스크 3
+///     자신이 수행되는 코어의 ID가 변경될 때마다 자신의 태스크 ID와 코어의 ID를 출력
+static void kTestTask3(void) {
+    QWORD qwTaskID;
+    TCB *pstRunningTask;
+    BYTE bLastLocalAPICID;
+    QWORD qwLastTick;
+
+    /// 자신의 태스크 자료구조를 저장
+    pstRunningTask = kGetRunningTask(kGetAPICID());
+    qwTaskID = pstRunningTask->stLink.qwID;
+    kPrintf("Test Task 3 Started. Task ID = 0x%q, Local APIC ID = 0x%x\n", qwTaskID, kGetAPICID());
+
+    /// 현재 수행중인 로컬 APIC ID를 저장했다가 태스크가 부하 분산되어 다른 코어로
+    /// 옮겨갔을 때 메시지를 출력
+    bLastLocalAPICID = kGetAPICID();
+
+    while (1) {
+        /// 이전에 수행되었다면 코어와 현재 수행하는 코어가 다르면 메시지를 출력
+        if (bLastLocalAPICID != kGetAPICID()) {
+            kPrintf("Core Changed. Task ID = 0x%q, Previous Local APIC ID = 0x%x Current = 0x%x\n",
+                    qwTaskID, bLastLocalAPICID, kGetAPICID());
+
+            /// 현재 수행 중인 코어의 ID를 변경
+            bLastLocalAPICID = kGetAPICID();
+        }
+
+        kSchedule();
+    }
+}
+
+
+/// 테스크를 생성해서 멀티 스태킹 수행
 static void kCreateTestTask(const char *pcParameterBuffer) {
 
     PARAMETER_LIST stList;
@@ -1188,7 +1220,7 @@ static void kCreateTestTask(const char *pcParameterBuffer) {
     char vcCount[30];
     int i;
 
-    // 파라미터를 출력
+    /// 파라미터를 출력
     kInitializeParameter(&stList, pcParameterBuffer);
     kGetNextParameter(&stList, vcType);
     kGetNextParameter(&stList, vcCount);
@@ -1198,7 +1230,7 @@ static void kCreateTestTask(const char *pcParameterBuffer) {
         case 1:
             for (i = 0; i < kAToI(vcCount, 10); i++) {
                 if (kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD,
-                                0, 0, (QWORD) kTestTask1) == NIL) {
+                                0, 0, (QWORD) kTestTask1, TASK_LOAD_BALANCING_ID) == NIL) {
                     break;
                 }
             }
@@ -1210,16 +1242,28 @@ static void kCreateTestTask(const char *pcParameterBuffer) {
         default:
             for (i = 0; i < kAToI(vcCount, 10); i++) {
                 if (kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD,
-                                0, 0, (QWORD) kTestTask2) == NIL) {
+                                0, 0, (QWORD) kTestTask2, TASK_LOAD_BALANCING_ID) == NIL) {
                     break;
                 }
             }
             kPrintf("Task2 %d Crated\n", i);
             break;
+
+        case 3:
+            for (i = 0; i < kAToI(vcCount, 10); i++) {
+                if (kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD,
+                                0, 0, (QWORD) kTestTask3, TASK_LOAD_BALANCING_ID) == NIL) {
+                    break;
+                }
+            }
+
+            kPrintf("Task3 %d Crated\n", i);
+            break;
+
     }
 }
 
-// 태스크의 우선순위를 변경
+/// 태스크의 우선순위를 변경
 static void kChangeTaskPriority(const char *pcParameterBuffer) {
     PARAMETER_LIST stList;
     char vcID[30];
@@ -1251,19 +1295,56 @@ static void kChangeTaskPriority(const char *pcParameterBuffer) {
     }
 }
 
-// 현재 생성된 모든 태스크의 정보를 출력
+/// 현재 생성된 모든 태스크의 정보를 출력
 static void kShowTaskList(const char *pcParameterBuffer) {
     int i;
     TCB *pstTCB;
     int iCount = 0;
+    int iTotalTaskCount = 0;
+    char vcBuffer[20];
+    int iRemainLength;
+    int iProcessorCount;
 
-    kPrintf("============= Task Total Count [%d] ==================\n", kGetTaskCount());
+    /// 코어 수만큼 루프를 돌면서 각 스케줄러에 있는 태스크의 수를 더함
+    iProcessorCount = kGetProcessorCount();
+
+    for (i = 0; i < iProcessorCount; i++) {
+        iTotalTaskCount += kGetTaskCount(i);
+    }
+
+    kPrintf("============= Task Total Count [%d] ==================\n", iTotalTaskCount);
+    /// 코어가 2개 이상이면 각 스케주러별로 개수를 출력
+    if (iProcessorCount > 1) {
+        for (i = 0; i < iProcessorCount; i++) {
+            if ((i != 0) && ((i % 4) == 0)) {
+                kPrintf("\n");
+            }
+
+            kSPrintf(vcBuffer, "Core %d: %d", i, kGetTaskCount(i));
+            kPrintf(vcBuffer);
+
+            /// 출력하고 남은 공간을 모두 스페이스바로 채움
+            iRemainLength = 19 - kStrLen(vcBuffer);
+            kMemSet(vcBuffer, ' ', iRemainLength);
+            vcBuffer[iRemainLength] = '\0';
+            kPrintf(vcBuffer);
+        }
+
+        kPrintf("\nPress any key to continue... ('q' is exit) : ");
+        if (kGetCh() == 'q') {
+            kPrintf("\n");
+            return;
+        }
+        kPrintf("\n\n");
+    }
+
 
     for (i = 0; i < TASK_MAX_COUNT; i++) {
-        // TCB를 구해서 TCB가 사용중이면 ID를 출력
+        /// TCB를 구해서 TCB가 사용중이면 ID를 출력
         pstTCB = kGetTCBInTCBPool(i);
         if ((pstTCB->stLink.qwID >> 32) != 0) {
-            if ((iCount != 0) && ((iCount % 10) == 0)) {
+            /// 태스크가 6개를 출력될 때마다 계속 태스크 정보를 표시할지 여부를 확인
+            if ((iCount != 0) && ((iCount % 6) == 0)) {
                 kPrintf("Press any key to continue...('q' is exit) : ");
                 if (kGetCh() == 'q') {
                     kPrintf("\n");
@@ -1275,6 +1356,8 @@ static void kShowTaskList(const char *pcParameterBuffer) {
                     1 + iCount++,
                     pstTCB->stLink.qwID, GET_PRIORITY(pstTCB->qwFlags), pstTCB->qwFlags,
                     kGetListCount(&(pstTCB->stChildThreadList)));
+            kPrintf("   Core ID[0x%X] CPU Affinity[0x%X]\n", pstTCB->bAPICID,
+                    pstTCB->bAffinity);
             kPrintf("   Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
                     pstTCB->qwParentProcessID,
                     pstTCB->pvMemoryAddress,
@@ -1338,18 +1421,39 @@ static void kKillTask(const char *pcParameterBuffer) {
 
 }
 
-// 프로세서의 사용률 표시
+/// 프로세서의 사용률 표시
 static void kCPULoad(const char *pcParameterBuffer) {
-    kPrintf("Processor Load: %d%%\n", kGetProcessorLoad());
+    int i;
+    char vcBuffer[50];
+    int iRemainLength;
+
+    kPrintf("========================== Processor Load =======================\n");
+
+    /// 각 코어별로 부하를 출력
+    for (i = 0; i < kGetProcessorCount(); i++) {
+        if ((i != 0) && ((i % 4) == 0)) {
+            kPrintf("\n");
+        }
+        kSPrintf(vcBuffer, "Core: %d : %d%%", i, kGetProcessorLoad(i));
+        kPrintf("%s", vcBuffer);
+
+
+        /// 출력하고 남은 공간을 모두 스페이스바로 채움
+        iRemainLength = 19 - kStrLen(vcBuffer);
+        kMemSet(vcBuffer, ' ', iRemainLength);
+        vcBuffer[iRemainLength] = '\0';
+        kPrintf(vcBuffer);
+    }
+    kPrintf("\n");
 }
 
 // ===================================================================================================================
-// 뮤텍스 테스트용 뮤텍스와 변수
+/// 뮤텍스 테스트용 뮤텍스와 변수
 // ===================================================================================================================
 static MUTEX gs_stMutex;
 static volatile QWORD gs_qwAdder;
 
-// 뮤텍스를 테스트하는 태스크
+/// 뮤텍스를 테스트하는 태스크
 static void kPrintNumberTast(void) {
     int i;
     int j;
@@ -1364,7 +1468,7 @@ static void kPrintNumberTast(void) {
     for (i = 0; i < 5; i++) {
         kLock(&(gs_stMutex));
         kPrintf("Task ID [0x%Q] Value[%d]\n",
-                kGetRunningTask()->stLink.qwID, gs_qwAdder);
+                kGetRunningTask(kGetAPICID())->stLink.qwID, gs_qwAdder);
 
         gs_qwAdder += 1;
         kUnlock(&(gs_stMutex));
@@ -1373,16 +1477,16 @@ static void kPrintNumberTast(void) {
         for (j = 0; j < 30000; j++);
     }
 
-    // 모든 태스크가 종료할때 까지 1초(100ms) 정도 대기
+    /// 모든 태스크가 종료할때 까지 1초(100ms) 정도 대기
     qwTickCount = kGetTickCount();
     while ((kGetTickCount() - qwTickCount) < 1000) {
         kSchedule();
     }
-    // 태스크 종료
+    /// 태스크 종료
     kExitTask();
 }
 
-// 뮤텍스를 테스트하는 태스크 생성
+/// 뮤텍스를 테스트하는 태스크 생성
 static void kTestMutex(const char *pcParameterBuffer) {
     int i;
     gs_qwAdder = 1;
@@ -1390,8 +1494,8 @@ static void kTestMutex(const char *pcParameterBuffer) {
     kInitializeMutex(&gs_stMutex);
 
     for (i = 0; i < 3; i++) {
-        // 뮤텍스를 테스트하는 3개 생성
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kPrintNumberTast);
+        /// 뮤텍스를 테스트하는 3개 생성
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kPrintNumberTast, kGetAPICID());
     }
 
     kPrintf("Wait Util %d Task End...\n", i);
@@ -1402,20 +1506,21 @@ static void kTestMutex(const char *pcParameterBuffer) {
 static void kCreateThreadTask(const char *pcParameterBuffer) {
     int i;
     for (i = 0; i < 3; i++) {
-        // 뮤텍스를 테스트하는 3개 생성
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kTestTask2);
+        /// 뮤텍스를 테스트하는 3개 생성
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0,
+                    (QWORD) kTestTask2, TASK_LOAD_BALANCING_ID);
     }
     while (1) {
         kSleep(1);
     }
 }
 
-// 스레드를 테스트하는 태스크 생성
+/// 스레드를 테스트하는 태스크 생성
 static void kTestThread(const char *pcParameterBuffer) {
     TCB *pstProcess;
 
     pstProcess = kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *) 0xEEEEEEEE,
-                             0x1000, (QWORD) kCreateThreadTask);
+                             0x1000, (QWORD) kCreateThreadTask, TASK_LOAD_BALANCING_ID);
 
     if (pstProcess != NIL) {
         kPrintf("Process [0x%Q] Create Success\n", pstProcess->stLink.qwID);
@@ -1425,7 +1530,7 @@ static void kTestThread(const char *pcParameterBuffer) {
 
 }
 
-// 난수를 방생시키기 위한 뱐수
+/// 난수를 방생시키기 위한 뱐수
 static volatile QWORD gs_qwRandomValue = 0;
 
 // 임의 난수를 반환
@@ -2140,4 +2245,20 @@ static void kShowInterruptProcessingCount(const char *pcParameterBuffer) {
 static void kStartInterruptLoadBalancing(const char *pcParameterBuffer) {
     kPrintf("Start Interrupt Load Balancing\n");
     kSetInterruptLoadBalancing(TRUE);
+}
+
+/// 태스크 부하 분산 기능을 시작
+static void kStartTaskLoadBalancing(const char *pcParameterBuffer) {
+    int i;
+
+    kPrintf("Start Task Load Balancing\n");
+
+    for (i = 0; i < MAX_PROCESSOR_COUNT; i++) {
+        kSetTaskLoadBalancing(i, TRUE);
+    }
+}
+
+/// 태스크의 프로세서 친화도를 변경
+static void kChangeTaskAffinity(const char *pcParameterBuffer) {
+
 }
