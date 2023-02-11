@@ -144,4 +144,6 @@ static void kStartTaskLoadBalancing(const char *pcParameterBuffer);
 
 static void kChangeTaskAffinity(const char *pcParameterBuffer);
 
+QWORD kRandom(void);
+
 #endif //CRAFTING_CONSOLESHELL_H

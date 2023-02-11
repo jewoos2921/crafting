@@ -1506,10 +1506,11 @@ static void kTestMutex(const char *pcParameterBuffer) {
 static void kCreateThreadTask(const char *pcParameterBuffer) {
     int i;
     for (i = 0; i < 3; i++) {
-        /// 뮤텍스를 테스트하는 3개 생성
+        /// 뮤텍스를 테스트하는 테스크를 3개 생성
         kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0,
                     (QWORD) kTestTask2, TASK_LOAD_BALANCING_ID);
     }
+
     while (1) {
         kSleep(1);
     }
@@ -1568,33 +1569,35 @@ static void kDropCharactorThread(void) {
     }
 }
 
-// 스레들르를 생성하여 매트릭스 화면 처럼 보여주는 프로세스
+/// 스레드를 생성하여 매트릭스 화면 처럼 보여주는 프로세스
 static void kMatrixProcess(void) {
     int i;
     for (i = 0; i < 300; i++) {
         if (kCreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW,
                         0, 0,
-                        (QWORD) kDropCharactorThread) == NIL) {
+                        (QWORD) kDropCharactorThread, TASK_LOAD_BALANCING_ID) == NIL) {
             break;
         }
+
         kSleep(kRandom() % 5 + 5);
     }
 
 
     kPrintf("%d Thread is created\n", i);
 
-    // 키가 입력되면 프로세스 종료
+    /// 키가 입력되면 프로세스 종료
     kGetCh();
 }
 
 
-// 매트릭스 화면을 보여줌
+/// 매트릭스 화면을 보여줌
 void kShowMatrix(const char *pcParameterBuffer) {
     TCB *pstProcess;
     pstProcess = kCreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW,
                              (void *) 0xE00000,
                              0xE00000,
-                             (QWORD) kMatrixProcess);
+                             (QWORD) kMatrixProcess,
+                             TASK_LOAD_BALANCING_ID);
     if (pstProcess != NIL) {
         kPrintf("Matrix Process [0x%Q] Create Success\n");
 
@@ -1618,7 +1621,7 @@ static void kFPUTestTask(void) {
     char vcData[4] = {'-', '\\', '|', '/'};
     CHARACTER *pstScreen = (CHARACTER *) CONSOLE_VIDEO_MEMORY_ADDRESS;
 
-    pstRunningTask = kGetRunningTask();
+    pstRunningTask = kGetRunningTask(kGetAPICID());
 
     // 자신의 ID를 얻어서 화면 오프셋으로 사용
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
@@ -1655,7 +1658,7 @@ static void kFPUTestTask(void) {
     }
 }
 
-// 원주율 계산
+/// 원주율(PIE) 계산
 void kTestPIE(const char *pcParameterBuffer) {
     double dResult;
     int i;
@@ -1667,7 +1670,8 @@ void kTestPIE(const char *pcParameterBuffer) {
             ((QWORD) (dResult * 100) % 10));
 
     for (i = 0; i < 100; i++) {
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kFPUTestTask);
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kFPUTestTask,
+                    TASK_LOAD_BALANCING_ID);
     }
 
 }
@@ -1741,7 +1745,7 @@ static void kTestSequentialAllocation(const char *pcParameterBuffer) {
 }
 
 // 임의로 메모리를 할당하고 해제하는 것을 반복하는 태스크
-static void kTestRandomAllocation(const char *pcParameterBuffer) {
+static void kRandomAllocationTask(const char *pcParameterBuffer) {
     TCB *pstTask;
     QWORD qwMemorySize;
     char vcBuffer[200];
@@ -1749,7 +1753,7 @@ static void kTestRandomAllocation(const char *pcParameterBuffer) {
     int i, j;
     int iY;
 
-    pstTask = kGetRunningTask();
+    pstTask = kGetRunningTask(kGetAPICID());
     iY = (pstTask->stLink.qwID) % 15 + 9;
 
     for (j = 0; j < 10; j++) {
@@ -1799,11 +1803,12 @@ static void kTestRandomAllocation(const char *pcParameterBuffer) {
     kExitTask();
 }
 
-// 태스크를 여러개 생성하여 임의의 메모리를 할당하고 해제하는 것을 반복하는 태스크
-static void kRandomAllocationTask(const char *pcParameterBuffer) {
+/// 태스크를 여러개 생성하여 임의의 메모리를 할당하고 해제하는 것을 반복하는 태스크
+static void kRandomAllocation(const char *pcParameterBuffer) {
     for (int i = 0; i < 1000; ++i) {
         kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD,
-                    0, 0, (QWORD) kRandomAllocationTask);
+                    0, 0, (QWORD) kRandomAllocationTask,
+                    TASK_LOAD_BALANCING_ID);
     }
 }
 
@@ -2147,8 +2152,7 @@ static void kStartSymmetricIOMode(const char *pcParameterBuffer) {
     kInitializeLocalVectorTable();
 
     /// 대칭 I/O 모드로 변경되었음을 설정
-    kSetSymmetricMode(TRUE);
-
+    kSetSymmetricIOMode(TRUE);
     /// I/O APIC 초기화
     kPrintf("Initialize IO Redirection Table\n");
     kInitializeIORedirectionTable();
@@ -2260,5 +2264,35 @@ static void kStartTaskLoadBalancing(const char *pcParameterBuffer) {
 
 /// 태스크의 프로세서 친화도를 변경
 static void kChangeTaskAffinity(const char *pcParameterBuffer) {
+    PARAMETER_LIST stList;
+    char vcID[30];
+    char vcAffinity[30];
+    QWORD qwID;
+    BYTE bAffinity;
 
+    /// 파라미터 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    kGetNextParameter(&stList, vcID);
+    kGetNextParameter(&stList, vcAffinity);
+
+    /// 태스크 ID 필드 추출
+    if (kMemCmp(vcID, "0x", 2) == 0) {
+        qwID = kAToI(vcID + 2, 16);
+    } else {
+        qwID = kAToI(vcID, 10);
+    }
+
+    /// 프로세서 친화도 추출
+    if (kMemCmp(vcID, "0x", 2) == 0) {
+        bAffinity = kAToI(vcAffinity + 2, 16);
+    } else {
+        bAffinity = kAToI(vcID, 10);
+    }
+
+    kPrintf("Change Task Affinity ID [0x%q] Affinity[0x%X] ", qwID, bAffinity);
+    if (kChangeProcessorAffinity(qwID, bAffinity) == TRUE) {
+        kPrintf("Success\n");
+    } else {
+        kPrintf("Fail\n");
+    }
 }

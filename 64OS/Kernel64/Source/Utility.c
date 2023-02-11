@@ -146,7 +146,7 @@ QWORD kGetTotalRAMSize(void) {
     return gs_qwTotalRAMMBSize;
 }
 
-// atoi()함수의 내부 구현
+/// atoi()함수의 내부 구현 (문자 스트링을 정수값으로 변환)
 long kAToI(const char *pcBuffer, int iRadix) {
     long lReturn;
 
