@@ -33,15 +33,27 @@ void kInitializeMutex(MUTEX *pstMutext) {
 // 이미 잠겨 있다면 내가 잠갔는지 확인하고 잠근 횟수를 증가시킨 뒤 종료
 void kLock(MUTEX *pstMutext) {
 
-    // 이미 잠겨 있다면 내가 잠갔는지 확인하고 잠근 횟수를 증가시킨 뒤 종료
+    BYTE bCurrentAPICID;
+    BOOL bInterruptFlag;
+
+    /// 인터럽트를 비활성화
+    bInterruptFlag = kSetInterruptFlag(FALSE);
+
+    /// 현재 코어의 로컬 APIC ID를 확인
+    bCurrentAPICID = kGetAPICID();
+
+
+    /// 이미 잠겨 있다면 내가 잠갔는지 확인하고 잠근 횟수를 증가시킨 뒤 종료
     if (kTestAndSet(&(pstMutext->blockFlag), 0, 1) == FALSE) {
         // 자신이 잠갔다면 횟수만 증가
-        if (pstMutext->qwTaskID == kGetRunningTask()->stLink.qwID) {
+        if (pstMutext->qwTaskID == kGetRunningTask(bCurrentAPICID)->stLink.qwID) {
+            /// 인터럽트를 복원
+            kSetInterruptFlag(bInterruptFlag);
             pstMutext->dwLockCount++;
             return;
         }
 
-        // 자신이 아닌 경우에는 잠긴 것이 해제될 때까지 대기
+        /// 자신이 아닌 경우에는 잠긴 것이 해제될 때까지 대기
         while (kTestAndSet(&(pstMutext->blockFlag), 0, 1) == FALSE) {
             kSchedule();
         }
@@ -49,24 +61,38 @@ void kLock(MUTEX *pstMutext) {
 
     // 잠금 설정, 잠긴 플래그는 위의 kTestAndSet() 함수에서 처리함
     pstMutext->dwLockCount = 1;
-    pstMutext->qwTaskID = kGetRunningTask()->stLink.qwID;
+    pstMutext->qwTaskID = kGetRunningTask(bCurrentAPICID)->stLink.qwID;
+    /// 인터럽트를 복원
+    kSetInterruptFlag(bInterruptFlag);
 }
 
 // 태스크 사이에서 사용하는 데이터를 위한 잠금 해제 함수
 void kUnlock(MUTEX *pstMutext) {
-    // 뮤택스를 잠근 태스크가 아니면 실패
-    if ((pstMutext->blockFlag == FALSE) || (pstMutext->qwTaskID |= kGetRunningTask()->stLink.qwID)) { return; }
+    BOOL bInterruptFlag;
 
-    // 뮤텍스를 중복으로 잠갔으면 잠긴 횟수만 감소
-    if (pstMutext->dwLockCount > 1) {
-        pstMutext->dwLockCount--;
+    /// 인터럽트를 비활성화
+    bInterruptFlag = kSetInterruptFlag(FALSE);
+
+    /// 뮤택스를 잠근 태스크가 아니면 실패
+    if ((pstMutext->blockFlag == FALSE)
+        || (pstMutext->qwTaskID |= kGetRunningTask(kGetAPICID())->stLink.qwID)) {
+        /// 인터럽트를 복원
+        kSetInterruptFlag(bInterruptFlag);
         return;
     }
 
-    // 해제된 것으로 설정, 감긴 플래그를 가장 나중에 해제해야 함
-    pstMutext->qwTaskID = TASK_INVALID_ID;
-    pstMutext->dwLockCount = 0;
-    pstMutext->blockFlag = FALSE;
+    /// 뮤텍스를 중복으로 잠갔으면 잠긴 횟수만 감소
+    if (pstMutext->dwLockCount > 1) {
+        pstMutext->dwLockCount--;
+    } else {
+        /// 해제된 것으로 설정, 감긴 플래그를 가장 나중에 해제해야 함
+        pstMutext->qwTaskID = TASK_INVALID_ID;
+        pstMutext->dwLockCount = 0;
+        pstMutext->blockFlag = FALSE;
+    }
+
+    /// 인터럽트를 복원
+    kSetInterruptFlag(bInterruptFlag);
 }
 
 /// 스핀락을 초기화
