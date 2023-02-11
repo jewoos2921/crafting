@@ -874,8 +874,56 @@ static BYTE kFindSchedulerOfMinumumTaskCount(const TCB *pstTask) {
     return bMinCoreIndex;
 }
 
+/// 파라미터로 전달된 코어에 태스크 부하 분산 기능 사용 여부를 설정
+BYTE kSetTaskLoadBalancing(BYTE bAPICID, BOOL bUseLoadBalancing) {
+    gs_vstScheduler[bAPICID].bUseLoadBalancing = bUseLoadBalancing;
+}
 
+/// 프로세서 친화도를 변경
+BOOL kChangeProcessorAffinity(QWORD qwTaskID, BYTE bAffinity) {
+    TCB *pstTarget;
+    BYTE bAPICID;
 
+    /// 태스크가 포함괸 코어의 로컬 APIC ID를 찾은 후 스핀락을 잠금
+    if (kFindSchedulerOfTaskAndLock(qwTaskID, &bAPICID) == FALSE) {
+        return FALSE;
+    }
+
+    /// 현재 실행 중인 태스크이면 프로세서 친화도만 변경. 실제 태스크가 옮겨지는 시점은 태스크 전환이 수행될 때임
+    pstTarget = gs_vstScheduler[bAPICID].pstRunningTask;
+
+    if (pstTarget->stLink.qwID == qwTaskID) {
+        /// 프로세서 친화도를 변경
+        pstTarget->bAffinity = bAffinity;
+
+        /// 임계 영역 끝
+        kUnlockForSpinLock(&(gs_vstScheduler[bAPICID].stSpinLock));
+    }
+
+        /// 실핼 중인 태스크가 아니면 준비 리스트에서 찾아서 즉시 이동
+    else {
+        /// 준비리스트에서 태스크를 찾지 못하면 직접 태스크를 찾아서 친화도를 설정
+        pstTarget = kRemoveTaskFromReadyList(bAPICID, qwTaskID);
+        if (pstTarget == NIL) {
+            pstTarget = kGetTCBInTCBPool(GET_TCB_OFF_SET(qwTaskID));
+            if (pstTarget != NIL) {
+                /// 프로세서 친화도를 변경
+                pstTarget->bAffinity = bAffinity;
+            }
+        } else {
+            /// 프로세서 친화도를 변경
+            pstTarget->bAffinity = bAffinity;
+        }
+
+        /// 임계 영역 끝
+        kUnlockForSpinLock(&(gs_vstScheduler[bAPICID].stSpinLock));
+
+        /// 프로세서 부하 분산을 고려해서 스케줄러에 등록
+        kAddTaskSchedulerWithLoadBalancing(pstTarget);
+    }
+
+    return TRUE;
+}
 
 
 
