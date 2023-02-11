@@ -86,6 +86,7 @@
 
 // IST의 시작 어드레스
 #define IST_START_ADDRESS 0x700000
+
 // IST의 크기
 #define IST_SIZE 0x100000
 

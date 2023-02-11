@@ -84,6 +84,12 @@
 // 자식 스레드 링크에 연결된 stThreadLink 정보에서 태스크 자료구조(TCB) 위치를 계산하여 반환하는 매크로
 #define GET_TCB_FROM_THREAD_LINK(x)     (TCB*) ((QWORD) (x) - offsetof(TCB, stThreadLink))
 
+
+/// 프로세서 친화도 필드에 아래의 값이 설정되면, 해당 태스크는 특별한 요구사항이 없는 것으로 판단하고
+/// 태스크 부하 분산 수행
+#define TASK_LOAD_BALANCING_ID          0xFF
+
+
 // 구조체
 // 1바이트로 정렬
 #pragma pack(push, 1)
@@ -130,13 +136,25 @@ typedef struct kTaskControlBlockStruct {
     void *pvStackAddress;
     QWORD qwStackSize;
 
-
     // FPU 사용 여부
     BOOL bFPUUsed;
+
+    /// 프로세서 친화도
+    BYTE bAffinity;
+
+    /// 현대 태스크를 수행하는 코어의 로컬 APIC ID
+    BYTE bAPICID;
+
+    /// TCB 전체를 16바이트 배수로 맞추기 위한 패딩
+    char vcPadding[9];
 } TCB;
 
 // TCB 풀의 상태를 관리하는 자료 구조
 typedef struct kTCBPoolManagerStruct {
+
+    /// 자료구조 동기화를 위한 스핀락
+    SPINLOCK stSpinLock;
+
     // 태스크 풀의 대한 정보
     TCB *pstStartAddress;
     int iMaxCount;
@@ -173,6 +191,9 @@ typedef struct kSchedulerStruct {
 
     // 마지막으로 FPU를 사용한 태스크의 ID
     QWORD qwLastFPUUsedTaskID;
+
+    /// 부하 분산 가능 사용 여부
+    BOOL bUseLoadBalancing;
 } SCHEDULER;
 
 #pragma pack(pop)
@@ -188,33 +209,37 @@ static TCB *kAllocateTCB(void);
 static void kFreeTCB(QWORD qwID);
 
 TCB *kCreateTask(QWORD qwFlags, void *pvMemoryAddress,
-                 QWORD qwMemorySize, QWORD qwEntryPointAddress);
+                 QWORD qwMemorySize, QWORD qwEntryPointAddress,
+                 BYTE bAffinity);
 
 static void kSetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
                        void *pvStackAddress, QWORD qwStackSize);
+
 
 // =========================================================================================
 //      스케줄러 관련
 // =========================================================================================
 void kInitializeScheduler(void);
 
-void kSetRunningTask(TCB *pstTask);
+void kSetRunningTask(BYTE bAPICID, TCB *pstTask);
 
-TCB *kGetRunningTask(void);
+TCB *kGetRunningTask(BYTE bAPICID);
 
-static TCB *kGetNextTaskToRun(void);
+static TCB *kGetNextTaskToRun(BYTE bAPICID);
 
-static BOOL kAddTaskToReadyList(TCB *pstTask);
+static BOOL kAddTaskToReadyList(BYTE bAPICID, TCB *pstTask);
 
-void kSchedule(void);
+BOOL kSchedule(void);
 
 BOOL kScheduleInterrupt(void);
 
-void kDecreaseProcessorTime(void);
+void kDecreaseProcessorTime(BYTE bAPICID);
 
-BOOL kIsProcessorTimeExpired(void);
+BOOL kIsProcessorTimeExpired(BYTE bAPICID);
 
-static TCB *kRemoveTaskFromReadyList(QWORD qwTaskID);
+static TCB *kRemoveTaskFromReadyList(BYTE bAPICID, QWORD qwTaskID);
+
+static BOOL kFindSchedulerOfTaskAndLock(QWORD qwTaskID, BYTE *pbAPICID);
 
 BOOL kChangePriority(QWORD qwTaskID, BYTE bPriority);
 
@@ -222,30 +247,38 @@ BOOL kEndTask(QWORD qwTaskID);
 
 void kExitTask(void);
 
-int kGetReadyTaskCount(void);
+int kGetReadyTaskCount(BYTE bAPICID);
 
-int kGetTaskCount(void);
+int kGetTaskCount(BYTE bAPICID);
 
 TCB *kGetTCBInTCBPool(int iOffset);
 
 BOOL kIsTaskExist(QWORD qwID);
 
-QWORD kGetProcessorLoad(void);
+QWORD kGetProcessorLoad(BYTE bAPICID);
 
 struct TCB *kGetProcessByThread(TCB *pstThread);
+
+void kAddTaskSchedulerWithLoadBalancing(TCB *pstTask);
+
+static BYTE kFindSchedulerOfMinumumTaskCount(const TCB *pstTask);
+
+BYTE kSetTaskLoadBalancing(BYTE bAPICID, BOOL bUseLoadBalancing);
+
+BOOL kChangeProcessorAffinity(QWORD qwTaskID, BYTE bAffinity);
 
 // =========================================================================================
 //      유휴 태스크 관련
 // =========================================================================================
 void kIdleTask(void);
 
-void kHaltProcessorByLoad(void);
+void kHaltProcessorByLoad(BYTE bAPICID);
 
 // =========================================================================================
 //      FPU 관련
 // =========================================================================================
-QWORD kGetLastFPUUsedTaskID(void);
+QWORD kGetLastFPUUsedTaskID(BYTE bAPICID);
 
-void kSetLastFPUUsedTaskID(QWORD qwTaskID);
+void kSetLastFPUUsedTaskID(BYTE bAPICID, QWORD qwTaskID);
 
 #endif //CRAFTING_TASK_H
