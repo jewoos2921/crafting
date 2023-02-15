@@ -53,4 +53,7 @@ void kSleep(QWORD qwMillisecond);
 
 void kPrintString(int iX, int iY, const char *pcString);
 
+inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize);
+
+
 #endif //CRAFTING_UTILITY_H

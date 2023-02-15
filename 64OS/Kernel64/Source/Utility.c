@@ -304,9 +304,9 @@ int kSPrintf(char *pcBuffer, const char *pcFormatString, ...) {
     int iReturn;
 
     // 가변 인자를 꺼내서 vsprintf() 함수에 넘겨줌
-    va_start(ap, pcFormatString);
+            va_start(ap, pcFormatString);
     iReturn = kVSPrintf(pcBuffer, pcFormatString, ap);
-    va_end(ap);
+            va_end(ap);
 
     return iReturn;
 }
@@ -446,5 +446,28 @@ void kPrintString(int iX, int iY, const char *pcString) {
     // NULL이 나올 때까지 문자열 출력
     for (int i = 0; pcString[i] != 0; ++i) {
         pstScreen[i].bCharactor = pcString[i];
+    }
+}
+
+/// 16 bit단위로 데이터를 채움
+/// inline : 함수를 호출하는 부분에 코드를 확장하라는 키워드
+inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize) {
+    int i;
+    QWORD qwData;
+    int iRemainWordStartOffset;
+
+    /// 8바이트에 WORD 데이터를 채움
+    for (i = 0; i < 4; i++) {
+        qwData = (qwData << 16) | wData;
+    }
+
+    /// 8바이트씩 먼저 채움, WORD 데이터를 4개씩 한꺼번에 채울 수 있음
+    for (i = 0; i < (iWordSize / 4); ++i) {
+        ((QWORD *) pvDestination)[i] = qwData;
+    }
+    /// 8바이트씩 채우고 남은 부분을 마무리
+    iRemainWordStartOffset = i * 4;
+    for (i = 0; i < (iWordSize % 4); ++i) {
+        ((WORD *) pvDestination)[iRemainWordStartOffset++] = wData;
     }
 }
