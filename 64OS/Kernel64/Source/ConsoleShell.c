@@ -21,6 +21,7 @@
 #include "IOAPIC.h"
 #include "PIC.h"
 #include "InterruptHandler.h"
+#include "VBE.h"
 
 // 커맨드 테이블 정의
 SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
@@ -69,6 +70,7 @@ SHELL_COMMAND_ENTRY gs_vstCommnadTable[] = {
         {"startintloadbal",  "Show Interrupt Load Balancing",                                kStartInterruptLoadBalancing},
         {"starttaskladbal",  "Start Task Load Balancing",                                    kStartTaskLoadBalancing},
         {"changeaffinity",   "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
+        {"vbemodeinfo",      "Show VBE Mode Information",                                    kShowVBEModeInfo},
 };
 
 
@@ -2295,4 +2297,34 @@ static void kChangeTaskAffinity(const char *pcParameterBuffer) {
     } else {
         kPrintf("Fail\n");
     }
+}
+
+/// VBE 모드 정보 블록을 출력
+static void kShowVBEModeInfo(const char *pcParameterBuffer) {
+    VBEMODE_INFOBLOCK *pstModeInfo;
+
+    /// VBE 모드 정보 블록을 반환
+    pstModeInfo = kGetVBEModeInfoBlock();
+    kPrintf("VESA %x\n", pstModeInfo->wWinGranulity);
+    kPrintf("X Resolution: %d\n", pstModeInfo->wXResolution);
+    kPrintf("Y Resolution: %d\n", pstModeInfo->wYResolution);
+    kPrintf("Bits Per Pixel: %d\n", pstModeInfo->bBitsPerPixel);
+
+    /// 해상도와 색 정보를 위주로 출력
+    kPrintf("Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bRedMaskSize,
+            pstModeInfo->bRedFieldPosition);
+    kPrintf("Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bGreenMaskSize,
+            pstModeInfo->bGreenFieldPosition);
+    kPrintf("Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bBlueMaskSize,
+            pstModeInfo->bBlueFieldPosition);
+    kPrintf("Physical Base Pointer: 0x%X\n", pstModeInfo->dwPhysicalBasePointer);
+
+    kPrintf("Linear Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearRedMaskSize,
+            pstModeInfo->bLinearRedFieldPosition);
+
+    kPrintf("Linear Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearGreenMaskSize,
+            pstModeInfo->bLinearGreenFieldPosition);
+
+    kPrintf("Linear Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearBlueMaskSize,
+            pstModeInfo->bLinearBlueFieldPosition);
 }
