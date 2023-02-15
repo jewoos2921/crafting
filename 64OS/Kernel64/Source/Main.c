@@ -26,6 +26,7 @@
 #include "SerialPort.h"
 #include "FileSystem.h"
 #include "MultiProcessor.h"
+#include "VBE.h"
 
 #include "Page.h"
 
@@ -47,6 +48,9 @@ void kCopyKernel64ImageTo2Mbyte(void);
 
 /// Application Processor를 위한 Main함수
 void MainForApplicationProcessor(void);
+
+/// 그래픽 모드를 테스트하는 함수
+void kStartGraphicModeTest(void);
 
 /// Bootstrap Processor 용 C 언어 커널 엔트리 포인트
 ///             아래 함수는 C 언어 커널의 시작 부분
@@ -158,6 +162,14 @@ int main() {
                 0, 0, (QWORD) kIdleTask, kGetAPICID());
 
     kStartConsoleShell();
+
+
+    /// 그래픽 모드가 아니면 콘솔 셸 실행
+    if (*(BYTE *) VBE_START_GRAPHIC_MODE_FLAG_ADDRESS == 0) {
+        kStartConsoleShell();
+    } else {
+        kStartGraphicModeTest();
+    }
 }
 
 /// Application Processor용 C 언어 커널 엔트리 포인트
@@ -458,5 +470,44 @@ void kCopyKernel64ImageTo2Mbyte(void) {
         *pdwDestinationAddress = *pdwSourceAddress;
         pdwDestinationAddress++;
         pdwSourceAddress++;
+    }
+}
+
+/// 그래픽 모드를 테스트
+void kStartGraphicModeTest(void) {
+    VBEMODE_INFOBLOCK *pstVBEMode;
+    WORD *pwFrameBufferAddress;
+    WORD wColor = 0;
+    int iBandHeight, i, j;
+
+
+    /// 키 입력
+    kGetCh();
+
+    /// VBE 모드 정보 블록을 반환하고 선형 프레임 버퍼의 시작 어드레스를 저장
+    pstVBEMode = kGetVBEModeInfoBlock();
+    pwFrameBufferAddress = (WORD *) ((QWORD) pstVBEMode->dwPhysicalBasePointer);
+
+    /// 화면을 세로로 32 등분하여 색을 칠함
+    iBandHeight = pstVBEMode->wYResolution / 32;
+
+    while (1) {
+        for (j = 0; j < pstVBEMode->wYResolution; j++) {
+            /// X축의 크기만큼 프레임 버퍼에 색을 저장
+            for (i = 0; i < pstVBEMode->wXResolution; i++) {
+                /// 비디오 메모리 오프셋을 계산하는 부분
+                /// Y축의 현재 위치(j)에 X축의 크기를 곱하면 Y축의 시작 어드레스를
+                /// 계산할 수 있고, 여기에 X축의 오프셋(i)를 더하면 현재 픽셀을 출력할
+                /// 어드레스를 구할 수 있음
+                pwFrameBufferAddress[(j * pstVBEMode->wXResolution) + i] = wColor;
+            }
+
+            /// Y 위치가 32 등분한 단위로 나누어 떨어지면 색을 바꿈
+            if ((j % iBandHeight) == 0) {
+                wColor = kRandom() & 0xFFFF;
+            }
+        }
+        /// 키 입력을 대기
+        kGetCh();
     }
 }
