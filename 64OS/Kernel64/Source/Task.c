@@ -1079,7 +1079,7 @@ QWORD kGetLastFPUUsedTaskID(BYTE bAPICID) {
     return gs_vstScheduler[bAPICID].qwLastFPUUsedTaskID;
 }
 
-/// 마지막으로 FPU를 사용한 태스크 ID를 설정
+ /// 마지막으로 FPU를 사용한 태스크 ID를 설정
 void kSetLastFPUUsedTaskID(BYTE bAPICID, QWORD qwTaskID) {
     gs_vstScheduler[bAPICID].qwLastFPUUsedTaskID = qwTaskID;
 }

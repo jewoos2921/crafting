@@ -76,5 +76,5 @@ add_executable(
         64OS/Kernel64/Source/RAMDisk.c
         64OS/Kernel64/Source/SerialPort.c
 
-        64OS/Kernel64/Source/MPConfigurationTable.c 64OS/Kernel64/Source/LocalAPIC.c 64OS/Kernel64/Source/MultiProcessor.c 64OS/Kernel64/Source/IOAPIC.c)
+        64OS/Kernel64/Source/MPConfigurationTable.c 64OS/Kernel64/Source/LocalAPIC.c 64OS/Kernel64/Source/MultiProcessor.c 64OS/Kernel64/Source/IOAPIC.c 64OS/Kernel64/Source/VBE.c)
 
