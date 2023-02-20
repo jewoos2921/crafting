@@ -133,8 +133,8 @@ void kClearSerialFIFO(void) {
 
     /// 송수신 FIFO를 모두 비우고 버퍼에 데이터가 14바이트 찼을 때 인터럽트가 발생하도록 FIFO 제어 레지스터(0x3FA)에 설정값 정송
     kOutPortByte(SERIAL_PORT_COM1 + SERIAL_PORT_INDEX_FIFO_CONTROL,
-                 SERIAL_FIFO_CONTROL_FIFO_ENABLE | SERIAL_FIFO_CONTROL_14BYTE_FIFO
-                 | SERIAL_FIFO_CONTROL_CLEAR_RECEIVE_FIFO | SERIAL_FIFO_CONTROL_CLEAR_TRASNMIT_FIFO);
+                 (SERIAL_FIFO_CONTROL_FIFO_ENABLE | SERIAL_FIFO_CONTROL_14BYTE_FIFO
+                  | SERIAL_FIFO_CONTROL_CLEAR_RECEIVE_FIFO | SERIAL_FIFO_CONTROL_CLEAR_TRASNMIT_FIFO));
 
     /// 동기화
     kUnlock(&(gs_stSerialManager.stLock));
