@@ -1536,7 +1536,7 @@ static void kTestThread(const char *pcParameterBuffer) {
 /// 난수를 방생시키기 위한 뱐수
 static volatile QWORD gs_qwRandomValue = 0;
 
-// 임의 난수를 반환
+/// 임의 난수를 반환
 QWORD kRandom(void) {
     gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
     return gs_qwRandomValue;

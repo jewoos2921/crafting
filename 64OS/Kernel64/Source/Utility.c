@@ -465,6 +465,7 @@ inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize) {
     for (i = 0; i < (iWordSize / 4); ++i) {
         ((QWORD *) pvDestination)[i] = qwData;
     }
+
     /// 8바이트씩 채우고 남은 부분을 마무리
     iRemainWordStartOffset = i * 4;
     for (i = 0; i < (iWordSize % 4); ++i) {
